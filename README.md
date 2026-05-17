@@ -29,7 +29,7 @@ Build the module:
 make
 ```
 
-You can then use the package from the project root:
+Use the package from the project root:
 
 ```bash
 python -c "import studious; print(studious)"
