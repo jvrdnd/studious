@@ -1,0 +1,24 @@
+BasedOnStyle: LLVM
+ColumnLimit: 120
+
+# braces and blocks
+BreakBeforeBraces: Attach
+InsertBraces: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Empty
+
+# functions
+AlignAfterOpenBracket: DontAlign
+BinPackArguments: false
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# constructors
+BreakConstructorInitializers: AfterColon
+PackConstructorInitializers: BinPack
+
+# lists
+Cpp11BracedListStyle: false
+
+# indentation
+IndentCaseLabels: true

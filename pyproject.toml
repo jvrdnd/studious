@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "studious"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "A minimal tensor framework"
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+preview = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+preview = true

@@ -1,0 +1,16 @@
+.DS_Store
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# build
+compile_flags.txt
+build/
+dist/
+*.dSYM/
+
+# extension output
+studious/_core*.so
