@@ -31,10 +31,8 @@ make
 
 You can then use the package from the project root:
 
-```python
-import studious
-
-print(studious)
+```bash
+python -c "import studious; print(studious)"
 ```
 
 To clean build artifacts:
