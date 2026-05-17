@@ -27,15 +27,16 @@ OBJS := $(patsubst core/%.cpp,build/%.o,$(SRCS))
 NB_OBJ := build/nb_combined.o
 OUT := studious/_core$(PY_EXT_SUFFIX)
 
-.PHONY: build clean debug compile_flags check build_dir
+.PHONY: build clean debug check build_dir
 
-build: check $(OUT)
+build: check compile_flags.txt $(OUT)
 
 build_dir:
 	mkdir -p build
 
-compile_flags.txt:
-	@$(MAKE) compile_flags
+compile_flags.txt: Makefile
+	@printf "%s\n" $(USER_CXXFLAGS) > $@
+	@echo "wrote $@"
 
 $(OBJS): build/%.o: core/%.cpp compile_flags.txt | build_dir
 	$(CXX) $(USER_CXXFLAGS) -Icore -c $< -o $@
@@ -45,10 +46,6 @@ $(NB_OBJ): $(NB_SRC) compile_flags.txt | build_dir
 
 $(OUT): $(OBJS) $(NB_OBJ) studious/__init__.py
 	$(CXX) $(OBJS) $(NB_OBJ) -o $(OUT) $(LDFLAGS)
-
-compile_flags:
-	@printf "%s\n" $(USER_CXXFLAGS) > compile_flags.txt
-	@echo "wrote compile_flags.txt"
 
 check:
 	@for src in $(SRCS); do test -f "$$src" || (echo "missing source: $$src" && exit 1); done
@@ -69,8 +66,8 @@ debug:
 	@echo "NB_INCLUDE = $(NB_INCLUDE)"
 	@echo "NB_EXT_INCLUDE = $(NB_EXT_INCLUDE)"
 	@echo "NB_SRC = $(NB_SRC)"
-	@echo "SRC = $(SRC)"
-	@echo "SRC_OBJ = $(SRC_OBJ)"
+	@echo "SRCS = $(SRCS)"
+	@echo "OBJS = $(OBJS)"
 	@echo "NB_OBJ = $(NB_OBJ)"
 	@echo "OUT = $(OUT)"
 	@echo
@@ -78,12 +75,4 @@ debug:
 	@printf "  %s\n" $(USER_CXXFLAGS)
 	@echo
 	@echo "NB_CXXFLAGS:"
-	@printf "  %s\n" $(NB_CXXFLAGS)
-	@echo
-	@echo "LDFLAGS:"
-	@printf "  %s\n" $(LDFLAGS)
-
-clean:
-	rm -f studious/_core*.so
-	rm -rf build
-	rm -rf __pycache__ studious/__pycache__
+	@printf "  %
