@@ -23,6 +23,19 @@ source .venv/bin/activate
 python -m pip install nanobind
 ```
 
+Install CMake 3.15 or newer (if not available):
+
+```bash
+# macOS
+brew install cmake
+
+# Ubuntu/Debian
+sudo apt update && sudo apt install -y cmake
+
+# Windows
+winget install Kitware.CMake
+```
+
 Build the module:
 
 ```bash

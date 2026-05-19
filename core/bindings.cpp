@@ -57,10 +57,6 @@ static Tensor create_tensor(nb::handle obj) {
 }
 
 NB_MODULE(_core, m) {
-  nb::class_<Tensor>(m, "Tensor")
-      .def(nb::init<const std::vector<double> &, const std::vector<std::size_t> &>())
-      .def_rw("shape", &Tensor::shape)
-      .def("__repr__", &Tensor::repr);
-
+  nb::class_<Tensor>(m, "Tensor").def_rw("shape", &Tensor::shape).def("__repr__", &Tensor::repr);
   m.def("create_tensor", &create_tensor);
 }

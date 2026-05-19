@@ -2,31 +2,18 @@
 
 #include <cassert>
 #include <sstream>
-#include <stdexcept>
 
-Tensor::Tensor(const std::vector<double> &data_, const std::vector<std::size_t> &shape_) : shape(shape_), data(data_) {
-  std::size_t size = 1;
-  for (std::size_t dim : shape) {
-    if (dim <= 0) {
-      throw std::runtime_error("shape dimensions must be positive");
-    }
-    size *= static_cast<std::size_t>(dim);
-  }
-
-  if (size != data.size()) {
-    throw std::runtime_error("shape dimensions must match data size");
-  }
-}
+Tensor::Tensor(const std::vector<double> &data_, const std::vector<std::size_t> &shape_) : shape(shape_), data(data_) {}
 
 std::string Tensor::repr() const {
   std::ostringstream os;
 
-  std::function<void(std::size_t, std::size_t)> repr_at = [&](std::size_t dim, std::size_t offset) {
+  std::function<void(std::size_t, std::size_t)> repr_at{ [&](std::size_t dim, std::size_t offset) {
     os << "[";
 
     if (dim + 1 == shape.size()) {
       // leaf: print scalars
-      for (std::size_t i = 0; i < shape[dim]; ++i) {
+      for (std::size_t i{ 0 }; i < shape[dim]; ++i) {
         os << data[offset + i];
         if (i + 1 < shape[dim]) {
           os << ", ";
@@ -35,11 +22,11 @@ std::string Tensor::repr() const {
 
     } else {
       // recursion: repr subarrays
-      std::size_t stride = 1;
-      for (std::size_t i = dim + 1; i < shape.size(); ++i) {
+      std::size_t stride{ 1 };
+      for (std::size_t i{ dim + 1 }; i < shape.size(); ++i) {
         stride *= shape[i];
       }
-      for (std::size_t i = 0; i < shape[dim]; ++i) {
+      for (std::size_t i{ 0 }; i < shape[dim]; ++i) {
         repr_at(dim + 1, offset + i * stride);
         if (i + 1 < shape[dim]) {
           os << ", ";
@@ -48,7 +35,7 @@ std::string Tensor::repr() const {
     }
 
     os << "]";
-  };
+  } };
 
   os << "array(";
   if (shape.empty()) {
