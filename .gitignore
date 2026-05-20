@@ -1,19 +1,17 @@
 .DS_Store
 
 # python
-__pycache__/
+py.typed
+*.pyi
 *.py[cod]
 *.egg-info/
-.pytest_cache/
+__pycache__/
 .venv/
-venv/
-env/
 
 # build
-compile_flags.txt
+.cache
 build/
-dist/
 *.dSYM/
 
 # extension output
-studious/_core*.so
+studious/*.so

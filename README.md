@@ -53,14 +53,3 @@ To clean build artifacts:
 ```bash
 make clean
 ```
-
-## Usage
-
-Create tensors using the NumPy API:
-
-```python
-import studious.numpy as snp
-
-x = snp.array([[1, 2, 3], [4, 5, 6]])
-print(x)
-```

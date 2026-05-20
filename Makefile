@@ -10,4 +10,4 @@ configure:
 
 clean:
 	rm -rf build
-	rm -f studious/_core*.so
+	rm -f studious/*.so
