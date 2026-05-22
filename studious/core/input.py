@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from .._lib import Array, DType
 from .trace import Trace
 
-Scalar = (bool, int, float)
 type TScalar = bool | int | float
 
 # map python types to device types
@@ -38,7 +37,7 @@ def get_placeholder(input: Input) -> Placeholder:
     if isinstance(input, Tracer):
         return input.placeholder
 
-    if isinstance(input, (bool, int, float)):
-        return Placeholder(DTYPES[type(input)], ())
+    if isinstance(input, Array):
+        return Placeholder(input.dtype, tuple(input.shape))
 
-    raise TypeError(f"cannot get placeholder for {type(input)}")
+    return Placeholder(DTYPES[type(input)], ())

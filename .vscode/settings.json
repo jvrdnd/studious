@@ -1,7 +1,4 @@
 {
-  "files.associations": {
-    "*.h": "cpp"
-  },
   "editor.formatOnSave": true,
   "editor.rulers": [
     120
