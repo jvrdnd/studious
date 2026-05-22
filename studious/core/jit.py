@@ -1,20 +1,34 @@
-from collections.abc import Callable
+from __future__ import annotations
+
 from functools import wraps
+from typing import Protocol
 
-from .primitive import Executable
-from .trace import JitTrace, TraceScope
+from .._lib import Array
+from .input import Input, Param, Tracer, get_placeholder
+from .trace import JitTrace, Op, TraceScope
 
 
-def jit[**P, R](function: Callable[P, R]) -> Callable[P, Executable]:
+class Traceable(Protocol):
+    def __call__(self, *inputs: Input, **params: Param) -> tuple[Tracer, ...]: ...
+
+
+class Executable(Protocol):
+    def __call__(self, *inputs: Input) -> tuple[Array, ...]: ...
+
+
+def compile(ops: list[Op], tracers: tuple[Tracer, ...]) -> Executable:
+    raise NotImplementedError
+
+
+def jit(function: Traceable) -> Executable:
     @wraps(function)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Executable:
-        # push the JIT trace
+    def wrapper(*inputs: Input, **params: Param) -> tuple[Array, ...]:
+        # push the jit trace
         with TraceScope(JitTrace) as trace:
-            # traverse
-            function(*args, **kwargs)
-            graph = trace.ops
+            # gather ops
+            in_tracers = [Tracer(get_placeholder(input), trace) for input in inputs]
+            out_tracers = function(*in_tracers, **params)
 
-        # compile
-        return graph  # type: ignore[arg-type]
+        return compile(trace.ops, out_tracers)(*inputs)
 
     return wrapper

@@ -5,8 +5,12 @@ from dataclasses import dataclass, field
 from types import TracebackType
 
 from .._lib import Array
+from .input import Input, Param, Tracer, get_placeholder
 from .primitive import Primitive
-from .traceable import Traceable, Tracer, get_placeholder
+
+type OpInputs = tuple[Input, ...]
+type OpParams = dict[str, Param]
+type Op = tuple[Primitive, OpInputs, OpParams]
 
 
 @dataclass
@@ -14,27 +18,25 @@ class Trace:
     level: int
     is_valid: bool = True
 
-    def process_primitive(
-        self, primitive: Primitive, args: tuple[Traceable, ...], params: dict[str, object]
-    ) -> Traceable:
+    def process(self, primitive: Primitive, inputs: OpInputs, params: OpParams) -> tuple[Input, ...]:
         raise NotImplementedError
 
 
 @dataclass
 class EvalTrace(Trace):
-    def process_primitive(self, primitive: Primitive, args: tuple[Traceable, ...], params: dict[str, object]) -> Array:
-        return primitive.execute(*args, **params)  # type: ignore[arg-type]: called with tuple[Array, ...] args
+    def process(self, primitive: Primitive, inputs: OpInputs, params: OpParams) -> tuple[Array, ...]:
+        return primitive.execute(*inputs, **params)  # type: ignore : called with tuple[Array, ...] inputs
 
 
 @dataclass
 class JitTrace(Trace):
-    ops: list[tuple[Primitive, tuple[Traceable, ...], dict[str, object]]] = field(default_factory=lambda: [])
+    ops: list[Op] = field(default_factory=lambda: [])
 
-    def process_primitive(self, primitive: Primitive, args: tuple[Traceable, ...], params: dict[str, object]) -> Tracer:
-        self.ops.append((primitive, args, params))
-        in_placeholders = [get_placeholder(arg) for arg in args]
-        out_placeholder = primitive.simulate(*in_placeholders, **params)
-        return Tracer(out_placeholder, self)
+    def process(self, primitive: Primitive, inputs: OpInputs, params: OpParams) -> tuple[Tracer, ...]:
+        self.ops.append((primitive, inputs, params))
+        in_placeholders = [get_placeholder(input) for input in inputs]
+        out_placeholders = primitive.trace(*in_placeholders, **params)
+        return tuple(Tracer(placeholder, self) for placeholder in out_placeholders)
 
 
 @dataclass(frozen=True)
@@ -48,6 +50,7 @@ class TraceContext:
 
     @property
     def trace(self) -> Trace:
+        # top of the stack
         return self.stack[-1]
 
 

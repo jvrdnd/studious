@@ -1,50 +1,44 @@
-from collections.abc import Callable
-from dataclasses import dataclass, field
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Protocol
 
 from .._lib import Array
-from .jit import jit
+from .input import Input, Param, Placeholder, Tracer
+from .jit import Executable, jit
 from .trace import trace_context
-from .traceable import Placeholder, Traceable, Tracer
 from .util import cache
-
-Executable = Callable[..., Array]
-Simulatable = Callable[..., Placeholder]
-
-
-@dataclass
-class Rules:
-    execute: Executable | None = None
-    simulate: Simulatable | None = None
 
 
 @dataclass
 class Primitive:
     name: str
-    rules: Rules = field(default_factory=Rules)
 
-    def execute(self, *args: Array, **kwargs: object) -> Array:
-        if self.rules.execute is None:
-            raise NotImplementedError(f"no implementation for '{self.name}'")
-        return self.rules.execute(*args, **kwargs)
+    def __hash__(self) -> int:
+        return hash(self.name)
 
-    def simulate(self, *args: Placeholder, **kwargs: object) -> Placeholder:
-        if self.rules.simulate is None:
-            raise NotImplementedError(f"no implementation for '{self.name}'")
-        return self.rules.simulate(*args, **kwargs)
+    def execute(self, *inputs: Array, **params: Param) -> tuple[Array, ...]:
+        return execute_rule(self, **params)(*inputs)
 
-    def bind(self, *args: Traceable, **kwargs: object) -> Traceable:
+    def trace(self, *inputs: Placeholder, **params: Param) -> tuple[Placeholder, ...]:
+        raise NotImplementedError(f"no trace implementation for '{self.name}'")
+
+    def bind(self, *inputs: Input, **params: Param) -> tuple[Input, ...]:
         # catch leaked tracers
-        for arg in args:
-            if isinstance(arg, Tracer) and not arg.trace.is_valid:
-                raise RuntimeError(f"detected escaped tracer: {arg}")
+        for input in inputs:
+            if isinstance(input, Tracer) and not input.trace.is_valid:
+                raise RuntimeError(f"detected escaped tracer: {input}")
 
-        return trace_context().trace.process_primitive(self, args, kwargs)
+        return trace_context().trace.process(self, inputs, params)
+
+
+class ExecuteRule(Protocol):
+    def __call__(self, primitive: Primitive, **params: Param) -> Executable: ...
 
 
 @cache()
-def xla_primitive_callable(primitive: Primitive, **kwargs: object) -> Executable:
-    def function(*args: Tracer) -> Traceable:
-        return primitive.bind(*args, **kwargs)
+def execute_rule(primitive: Primitive, **params: Param) -> Executable:
+    def function(*inputs: Input) -> tuple[Input, ...]:
+        return primitive.bind(*inputs, **params)
 
-    jitted = jit(function)
-    return jitted
+    return jit(function)  # type: ignore : input is tracer + params in closure

@@ -1,23 +1,21 @@
 from collections.abc import Callable, Hashable
 from functools import lru_cache, wraps
 
+from .input import Param
+from .jit import Executable
+from .primitive import ExecuteRule, Primitive
 from .trace import trace_context
 
 
-def cache[**P, R](
-    max_size: int = 4096,
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    def wrap(function: Callable[P, R]) -> Callable[P, R]:
+def cache(max_size: int = 4096) -> Callable[[ExecuteRule], ExecuteRule]:
+    def wrap(function: ExecuteRule) -> ExecuteRule:
         @lru_cache(maxsize=max_size)
-        def cached(_: Hashable, *args: P.args, **kwargs: P.kwargs) -> R:
-            return function(*args, **kwargs)
+        def cached(_: Hashable, primitive: Primitive, **params: Param) -> Executable:
+            return function(primitive, **params)
 
         @wraps(function)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            return cached(trace_context().key, *args, **kwargs)
-
-        wrapper.cache_clear = cached.cache_clear  # type: ignore[attr-defined]
-        wrapper.cache_info = cached.cache_info  # type: ignore[attr-defined]
+        def wrapper(primitive: Primitive, **params: Param) -> Executable:
+            return cached(trace_context().key, primitive, **params)
 
         return wrapper
 
