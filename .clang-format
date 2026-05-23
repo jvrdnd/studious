@@ -1,9 +1,26 @@
 BasedOnStyle: LLVM
 ColumnLimit: 120
 
+InsertNewlineAtEOF: true
+KeepEmptyLines:
+  AtStartOfFile: false
+  AtEndOfFile: false
+
 IndentWidth: 4
 TabWidth: 4
+AccessModifierOffset: -4
 UseTab: Never
+
+# includes
+IncludeBlocks: Regroup
+IncludeIsMainRegex: '$^'
+IncludeCategories:
+  - Regex: '^<[[:alnum:]_./-]+>$'
+    Priority: -1
+    SortPriority: -1
+  - Regex: '^".*"$'
+    Priority: 1
+    SortPriority: 1
 
 # braces and blocks
 BreakBeforeBraces: Attach
@@ -12,14 +29,14 @@ AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: Empty
 
 # functions
-AlignAfterOpenBracket: DontAlign
+AlignAfterOpenBracket: BlockIndent
 BinPackArguments: false
 BinPackParameters: false
 AllowAllParametersOfDeclarationOnNextLine: false
 
 # constructors
 BreakConstructorInitializers: AfterColon
-PackConstructorInitializers: BinPack
+PackConstructorInitializers: NextLine
 
 # lists
 Cpp11BracedListStyle: false
