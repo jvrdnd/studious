@@ -43,6 +43,7 @@ Cpp11BracedListStyle: false
 
 # indentation
 IndentCaseLabels: true
-
-# comments
 AlignTrailingComments: Never
+BreakBinaryOperations: OnePerLine
+BreakBeforeBinaryOperators: None
+AlignOperands: DontAlign

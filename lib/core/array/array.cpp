@@ -2,11 +2,12 @@
 #include <cstdint>
 #include <memory>
 #include <span>
+#include <sstream>
 #include <utility>
 #include <vector>
 
+#include "../buffer.hpp"
 #include "array.hpp"
-#include "buffer.hpp"
 
 std::vector<std::int64_t> default_strides(std::span<const std::int64_t> shape, DType dtype) {
     std::vector<std::int64_t> strides(shape.size());
@@ -35,4 +36,8 @@ Array::Array(
 
 Device Array::device() const noexcept {
     return buffer->device;
+}
+
+std::string Array::repr() const {
+    return "test";
 }

@@ -2,6 +2,8 @@
 
 #include <cstddef>
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
+#include <optional>
 #include <stdexcept>
 
 enum class Device { CPU, CUDA, METAL };
@@ -30,7 +32,6 @@ public:
 
     const Device device;
     void *const ptr;
-    const std::size_t nbytes;
 
     Buffer(const Buffer &) = delete; // copy construction: Buffer b = a
     Buffer &operator=(const Buffer &) = delete; // copy assignment: b = a
@@ -38,11 +39,13 @@ public:
     Buffer &operator=(Buffer &&) = delete; // move assignment: b = std::move(a)
 
 protected:
-    Buffer(Device device, void *ptr, std::size_t nbytes) noexcept;
+    Buffer(Device device, void *ptr) noexcept;
 };
 
 class CpuBuffer final : public Buffer {
 public:
+    const std::size_t nbytes;
+
     explicit CpuBuffer(std::size_t nbytes);
     ~CpuBuffer() noexcept override;
 
@@ -52,9 +55,9 @@ private:
 
 class NumPyBuffer final : public Buffer {
 public:
-    NumPyBuffer(void *ptr, std::size_t nbytes, nanobind::object numpy_ptr);
+    NumPyBuffer(void *ptr, nanobind::object owner);
     ~NumPyBuffer() noexcept override;
 
 private:
-    nanobind::object numpy_ptr; // ensure NumPy does not free the memory
+    nanobind::object owner; // ensure NumPy does not free the memory
 };
