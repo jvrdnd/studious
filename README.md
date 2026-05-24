@@ -4,7 +4,7 @@ Studious is a minimal tensor framework built for educational purposes. It is mea
 
 The goal is to implement the core ideas behind modern tensor libraries from scratch, including automatic differentiation and execution on CPU, CUDA and Apple Metal.
 
-Early work is in progress with initial focus on the CPU implementation.
+Work in progress.
 
 ## Installation
 
@@ -23,7 +23,7 @@ source .venv/bin/activate
 python -m pip install nanobind
 ```
 
-Install CMake 3.15 or newer (if not available):
+Install CMake 3.15+:
 
 ```bash
 # macOS
