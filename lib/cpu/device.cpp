@@ -5,7 +5,7 @@
 #include "device.hpp"
 
 Platform Cpu::Device::platform() const noexcept {
-    return Platform::CPU;
+    return Platform::Cpu;
 }
 
 std::byte *Cpu::Device::allocate(std::size_t nbytes) const {

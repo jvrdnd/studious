@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <string>
 
-enum class Platform { CPU, METAL };
+enum class Platform { Cpu, Metal };
 
 class Device {
 public:

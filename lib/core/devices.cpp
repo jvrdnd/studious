@@ -16,9 +16,9 @@ std::vector<DevicePtr> devices() {
 
 std::vector<DevicePtr> devices(Platform platform) {
     switch (platform) {
-        case Platform::CPU:
+        case Platform::Cpu:
             return Cpu::devices();
-        case Platform::METAL:
+        case Platform::Metal:
             return Metal::devices();
     }
 }

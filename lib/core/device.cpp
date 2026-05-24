@@ -6,10 +6,10 @@ std::string Device::repr() const {
     std::string repr;
 
     switch (platform()) {
-        case Platform::CPU:
+        case Platform::Cpu:
             repr = "cpu";
             break;
-        case Platform::METAL:
+        case Platform::Metal:
             repr = "metal";
             break;
     }

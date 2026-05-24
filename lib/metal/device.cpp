@@ -18,7 +18,7 @@ Metal::Device::~Device() noexcept {
 }
 
 Platform Metal::Device::platform() const noexcept {
-    return Platform::METAL;
+    return Platform::Metal;
 }
 std::uint64_t Metal::Device::id() const noexcept {
     return id_;
