@@ -6,7 +6,7 @@
 #include <span>
 #include <vector>
 
-#include "../buffer.hpp"
+#include "buffer.hpp"
 
 std::vector<std::int64_t> default_strides(std::span<const std::int64_t> shape, DType dtype);
 

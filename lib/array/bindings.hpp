@@ -2,8 +2,8 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
-#include "array/array.hpp"
-#include "array/numpy.hpp"
+#include "array.hpp"
+#include "numpy.hpp"
 
 namespace nb = nanobind;
 
