@@ -4,8 +4,8 @@
 
 std::vector<DevicePtr> devices() {
     std::vector<DevicePtr> devices;
-    std::vector<DevicePtr> cpu_devices = Cpu::devices();
-    std::vector<DevicePtr> metal_devices = Metal::devices();
+    std::vector<DevicePtr> cpu_devices{ Cpu::devices() };
+    std::vector<DevicePtr> metal_devices{ Metal::devices() };
 
     devices.reserve(cpu_devices.size() + metal_devices.size());
     devices.insert(devices.end(), cpu_devices.begin(), cpu_devices.end());

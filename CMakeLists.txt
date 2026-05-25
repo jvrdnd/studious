@@ -29,7 +29,7 @@ endif()
 nanobind_add_module(_lib NB_SUPPRESS_WARNINGS ${STUDIOUS_SOURCES})
 
 target_compile_features(_lib PRIVATE cxx_std_20)
-target_compile_options(_lib PRIVATE -Wall -Wextra -Wpedantic -Wconversion -g -O0)
+target_compile_options(_lib PRIVATE -Wall -Wextra -Wpedantic -Wconversion -g -O3 -march=native)
 
 if(APPLE)
     include(FetchContent)

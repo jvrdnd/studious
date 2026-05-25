@@ -11,6 +11,8 @@ namespace Metal {
 
 class Buffer final : public ::Buffer {
 public:
+    const std::shared_ptr<const Device> device;
+
     Buffer(std::shared_ptr<const Device> device, std::size_t size);
     ~Buffer() noexcept override;
 

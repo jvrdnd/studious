@@ -1,14 +1,9 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
-
-#include "./device.hpp"
 
 class Buffer {
 public:
-    const std::shared_ptr<const Device> device;
-
     virtual ~Buffer() noexcept = default;
 
     Buffer(const Buffer &) = delete;
@@ -20,5 +15,5 @@ public:
     virtual std::size_t size() const noexcept = 0;
 
 protected:
-    Buffer(std::shared_ptr<const Device> device);
+    Buffer() = default;
 };

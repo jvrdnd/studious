@@ -16,7 +16,7 @@ std::vector<DevicePtr> Metal::devices() {
         devices.reserve(mtl_devices->count());
 
         for (NS::UInteger i{ 0 }; i < mtl_devices->count(); ++i) {
-            MTL::Device *mtl_device = static_cast<MTL::Device *>(mtl_devices->object(i));
+            MTL::Device *mtl_device{ static_cast<MTL::Device *>(mtl_devices->object(i)) };
             devices.push_back(std::make_shared<Metal::Device>(mtl_device->registryID(), mtl_device));
         }
     }

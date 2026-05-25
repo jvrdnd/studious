@@ -10,7 +10,7 @@ class Device final : public ::Device {
 public:
     [[nodiscard]] Platform platform() const noexcept override;
 
-    [[nodiscard]] std::byte *allocate(std::size_t nbytes) const;
+    [[nodiscard]] std::byte *allocate(std::size_t size) const;
     void deallocate(std::byte *ptr) const noexcept;
 
 protected:

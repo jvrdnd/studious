@@ -6,10 +6,19 @@ KeepEmptyLines:
   AtStartOfFile: false
   AtEndOfFile: false
 
+# indentation
 IndentWidth: 4
 TabWidth: 4
+ContinuationIndentWidth: 4
 AccessModifierOffset: -4
 UseTab: Never
+IndentCaseLabels: true
+AlignTrailingComments: Never
+BreakBinaryOperations: RespectPrecedence
+BreakBeforeBinaryOperators: None
+AlignOperands: DontAlign
+RequiresClausePosition: OwnLine
+IndentRequiresClause: true
 
 # includes
 IncludeBlocks: Regroup
@@ -41,9 +50,3 @@ PackConstructorInitializers: NextLine
 # lists
 Cpp11BracedListStyle: false
 
-# indentation
-IndentCaseLabels: true
-AlignTrailingComments: Never
-BreakBinaryOperations: OnePerLine
-BreakBeforeBinaryOperators: None
-AlignOperands: DontAlign
