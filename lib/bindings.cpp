@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
@@ -7,16 +8,25 @@
 #include "./core/array.hpp"
 #include "./core/device.hpp"
 #include "./core/devices.hpp"
+#include "./core/dtype.hpp"
 #include "./cpu/array.hpp"
 #include "./cpu/device.hpp"
 
 namespace nb = nanobind;
 
 NB_MODULE(_lib, m) {
-    nb::enum_<Platform>{ m, "Platform" }.value("CPU", Platform::Cpu).value("METAL", Platform::Metal).export_values();
+    nb::enum_<DType>(m, "DType")
+        .value("PRED", DType::Bool)
+        .value("U8", DType::UInt8)
+        .value("S32", DType::Int32)
+        .value("F16", DType::Float16)
+        .value("F32", DType::Float32)
+        .value("BF16", DType::BFloat16);
 
-    nb::class_<Device>{ m, "Device" }.def_prop_ro("platform", &Device::platform).def("__repr__", &Device::repr);
-    nb::class_<Cpu::Device, Device> CpuDevice_{ m, "CpuDevice" };
+    nb::enum_<Platform>{m, "Platform"}.value("CPU", Platform::Cpu).value("METAL", Platform::Metal).export_values();
+
+    nb::class_<Device>{m, "Device"}.def_prop_ro("platform", &Device::platform).def("__repr__", &Device::repr);
+    nb::class_<Cpu::Device, Device> CpuDevice_{m, "CpuDevice"};
 
     // devices(platform: Platform | None = None)
     m.def(
@@ -30,12 +40,7 @@ NB_MODULE(_lib, m) {
         nb::arg("platform") = nb::none()
     );
 
-    nb::class_<::Array<float>> Array_{ m, "Array" };
-    nb::class_<Cpu::Array<float>, ::Array<float>>{ m, "CpuArray" }
-        .def(
-            nb::init<std::shared_ptr<const Cpu::Device>, const std::vector<float> &>(),
-            nb::arg("device"),
-            nb::arg("values")
-        )
-        .def("__repr__", &Cpu::Array<float>::repr);
+    nb::class_<::Array> Array_{m, "Array"};
+    nb::class_<Cpu::Array, ::Array> CpuArray_{m, "CpuArray"};
+    m.def("make_array", &make_array);
 }

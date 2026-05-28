@@ -41,6 +41,8 @@ AllowShortFunctionsOnASingleLine: Empty
 AlignAfterOpenBracket: BlockIndent
 BinPackArguments: false
 BinPackParameters: false
+BinPackLongBracedList: false
+AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 
 # constructors
@@ -48,5 +50,5 @@ BreakConstructorInitializers: AfterColon
 PackConstructorInitializers: NextLine
 
 # lists
-Cpp11BracedListStyle: false
+Cpp11BracedListStyle: true
 

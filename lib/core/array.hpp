@@ -1,52 +1,36 @@
 #pragma once
 
-#include <cstddef>
 #include <memory>
+#include <nanobind/nanobind.h>
 #include <span>
 #include <sstream>
 #include <string>
 
 #include "device.hpp"
-#include "platform.hpp"
+#include "dtype.hpp"
 
-class BaseArray {
+class Array {
 public:
-    virtual ~BaseArray() noexcept = default;
+    virtual ~Array() noexcept = default;
 
 protected:
-    BaseArray() = default;
+    Array() = default;
 };
 
-template <typename T> class Array : public BaseArray {
-public:
-    [[nodiscard]] virtual std::span<const T> span() const = 0;
+std::shared_ptr<Array>
+make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<const Device> device);
 
-    [[nodiscard]] std::string repr() const {
-        std::ostringstream os;
-        os << "array([";
+template <typename T> std::string repr(std::span<const T> span) {
+    std::ostringstream os;
+    os << "array([";
 
-        std::span<const T> values = span();
-        for (std::size_t i{ 0 }; i < values.size(); i++) {
-            if (i > 0) {
-                os << ", ";
-            }
-            os << values[i];
+    for (std::size_t i{0}; i < span.size(); i++) {
+        if (i > 0) {
+            os << ", ";
         }
-
-        os << "])";
-        return os.str();
+        os << span[i];
     }
-};
 
-#include "../cpu/array.hpp"
-
-template <typename T>
-std::shared_ptr<Array<T>> make_array(const std::vector<float> &vector, T dtype, std::shared_ptr<const Device> device) {
-    switch (device->platform()) {
-        case Platform::Cpu:
-            return Cpu::Array<T>{ device, vector };
-        case Platform::Metal:
-            break;
-    }
-    throw std::invalid_argument{ "invalid platform" };
+    os << "])";
+    return os.str();
 }

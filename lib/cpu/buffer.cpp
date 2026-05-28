@@ -3,7 +3,7 @@
 #include "buffer.hpp"
 
 Cpu::Buffer::Buffer(std::shared_ptr<const Cpu::Device> device, std::size_t size) :
-    device{ std::move(device) }, data_{ device->allocate(size) }, size_{ size } {}
+    device{std::move(device)}, data_{device->allocate(size)}, size_{size} {}
 
 Cpu::Buffer::~Buffer() noexcept {
     device->deallocate(data_);

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
+#include <utility>
+#include <vector>
 
 #include "../core/array.hpp"
 #include "../core/dtype.hpp"
@@ -9,22 +12,19 @@
 
 namespace Cpu {
 
-template <NativeType T> class Array final : public ::Array<T> {
+class Array final : public ::Array {
 public:
-    Array(std::shared_ptr<const Buffer> buffer) noexcept : buffer_{ std::move(buffer) }, dtype_{ to_dtype<T>() } {};
-
-    template <typename R>
-        requires Range<R> && std::same_as<std::ranges::range_value_t<R>, T>
-    Array(std::shared_ptr<const Device> device, const R &range) :
-        buffer_{ make_buffer(std::move(device), range) }, dtype_{ to_dtype<T>() } {}
-
-    [[nodiscard]] std::span<const T> span() const override {
-        return { reinterpret_cast<const T *>(buffer_->data()), buffer_->size() / sizeof(T) };
-    }
+    Array(std::shared_ptr<const Buffer> buffer, DType dtype, std::vector<std::size_t> shape) noexcept :
+        buffer_{std::move(buffer)}, dtype_{dtype}, shape_{std::move(shape)} {};
 
 private:
     const std::shared_ptr<const Buffer> buffer_;
     const DType dtype_;
+    const std::vector<std::size_t> shape_;
+};
+
+constexpr auto dispatch_dtype = []<typename F>(DType dtype, F &&f) -> decltype(auto) {
+    return dispatch_dtype_impl(dtype, std::forward<F>(f));
 };
 
 } // namespace Cpu
