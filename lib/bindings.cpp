@@ -47,9 +47,29 @@ NB_MODULE(_lib, m) {
     );
 
     nb::class_<Array<Cpu::Buffer>> CpuArray_{m, "CpuArray"};
+    m.def(
+        "make_array",
+        [](nb::handle data, std::optional<DType> dtype, std::shared_ptr<const Cpu::Device> device) {
+            if (!device) {
+                device = std::make_shared<Cpu::Device>();
+            }
+            return make_array<Cpu::Device, Cpu::Buffer>(data, dtype, std::move(device));
+        },
+        nb::arg("data"),
+        nb::arg("dtype") = nb::none(),
+        nb::arg("device") = nullptr
+    );
+
     nb::class_<Array<Metal::Buffer>> MetalArray_{m, "MetalArray"};
-    m.def("make_array", &make_array<Cpu::Device, Cpu::Buffer>);
-    m.def("make_array", &make_array<Metal::Device, Metal::Buffer>);
+    m.def(
+        "make_array",
+        [](nb::handle data, std::optional<DType> dtype, std::shared_ptr<const Metal::Device> device) {
+            return make_array<Metal::Device, Metal::Buffer>(data, dtype, std::move(device));
+        },
+        nb::arg("data"),
+        nb::arg("dtype") = nb::none(),
+        nb::arg("device")
+    );
 }
 
 } // namespace sx
