@@ -27,8 +27,8 @@ protected:
     [[nodiscard]] std::string repr_() const override;
 
 private:
-    std::uint64_t id_;
-    MTL::Device *device_;
+    const std::uint64_t id_;
+    MTL::Device *const device_;
 };
 
 } // namespace sx::Metal

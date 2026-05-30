@@ -17,10 +17,10 @@ public:
         device()->deallocate(handle_);
     }
 
-    std::byte *data() const noexcept override {
+    [[nodiscard]] std::byte *data() const noexcept override {
         return static_cast<std::byte *>(handle_->contents());
     }
-    std::size_t size() const noexcept override {
+    [[nodiscard]] std::size_t size() const noexcept override {
         return handle_->length();
     }
 

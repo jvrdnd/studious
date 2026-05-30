@@ -15,7 +15,7 @@ std::size_t memcpy(std::byte *ptr, nb::handle data, DType dtype) {
 
     } else {
         dispatch_dtype(dtype, [&]<typename T>() {
-            T scalar = nb::cast<T>(data);
+            const T scalar = nb::cast<T>(data);
             offset = sizeof(T);
             std::memcpy(ptr, &scalar, offset);
         });

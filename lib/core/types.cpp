@@ -4,14 +4,14 @@
 
 namespace sx {
 
-bool u8_to_bool(std::uint8_t u) {
+bool u8_to_bool(std::uint8_t u) noexcept {
     return u != 0;
 }
-std::uint8_t bool_to_u8(bool b) {
+std::uint8_t bool_to_u8(bool b) noexcept {
     return static_cast<std::uint8_t>(b);
 }
 
-std::uint16_t f32_to_f16(float f) {
+std::uint16_t f32_to_f16(float f) noexcept {
     std::uint32_t x = std::bit_cast<std::uint32_t>(f);
 
     std::uint32_t sign = (x >> 16) & 0x8000u;
@@ -66,7 +66,7 @@ std::uint16_t f32_to_f16(float f) {
     return std::uint16_t(sign | he | hm);
 }
 
-float f16_to_f32(std::uint16_t h) {
+float f16_to_f32(std::uint16_t h) noexcept {
     std::uint32_t sign = std::uint32_t(h & 0x8000u) << 16;
     std::uint32_t exp = (h >> 10) & 0x1fu;
     std::uint32_t mant = h & 0x03ffu;
@@ -96,14 +96,14 @@ float f16_to_f32(std::uint16_t h) {
     return std::bit_cast<float>(out);
 }
 
-std::uint16_t f32_to_bf16(float f) {
+std::uint16_t f32_to_bf16(float f) noexcept {
     std::uint32_t x = std::bit_cast<std::uint32_t>(f);
     std::uint32_t lsb = (x >> 16) & 1u;
     std::uint32_t bias = 0x7fffu + lsb;
     return std::uint16_t((x + bias) >> 16);
 }
 
-float bf16_to_f32(std::uint16_t h) {
+float bf16_to_f32(std::uint16_t h) noexcept {
     std::uint32_t x = std::uint32_t(h) << 16;
     return std::bit_cast<float>(x);
 }

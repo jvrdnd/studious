@@ -25,10 +25,10 @@ public:
         dtype_{dtype}, shape_{std::move(shape)}, buffer_{std::move(buffer)} {}
     virtual ~Array() noexcept = default;
 
-    DType dtype() const noexcept {
+    [[nodiscard]] DType dtype() const noexcept {
         return dtype_;
     }
-    std::span<const std::size_t> shape() const noexcept {
+    [[nodiscard]] std::span<const std::size_t> shape() const noexcept {
         return shape_;
     }
 
@@ -59,9 +59,9 @@ make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<co
     const std::vector<std::size_t> shape = infer_nb_shape(data);
     const std::size_t size =
         std::accumulate(shape.begin(), shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
-    DType dtype_required = dtype.value_or(infer_nb_dtype(data, shape).value_or(DType::Float32));
+    const DType dtype_required = dtype.value_or(infer_nb_dtype(data, shape).value_or(DType::Float32));
 
-    std::shared_ptr<const B> buffer = std::make_shared<B>(device, dtype_size(dtype_required) * size);
+    const std::shared_ptr<B> buffer = std::make_shared<B>(device, dtype_size(dtype_required) * size);
     memcpy(buffer->data(), data, dtype_required);
 
     return std::make_shared<Array<B>>(dtype_required, std::move(shape), buffer);

@@ -13,7 +13,7 @@ namespace nb = nanobind;
 std::vector<std::size_t> infer_nb_shape(nb::handle data) {
     std::vector<std::size_t> shape;
     while (nb::isinstance<nb::list>(data)) {
-        auto list = nb::borrow<nb::list>(data);
+        const auto list = nb::borrow<nb::list>(data);
         shape.push_back(list.size());
         if (list.size() == 0) {
             break;
@@ -41,7 +41,7 @@ std::optional<DType> infer_nb_dtype(nb::handle data, const std::vector<std::size
         throw nb::type_error("data must be array or scalar");
     }
 
-    auto list{nb::borrow<nb::list>(data)};
+    const auto list{nb::borrow<nb::list>(data)};
     if (shape[depth] != list.size()) {
         throw nb::type_error("invalid array shape");
     }
