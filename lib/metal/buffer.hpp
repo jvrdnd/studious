@@ -7,20 +7,25 @@
 #include "../core/buffer.hpp"
 #include "device.hpp"
 
-namespace Metal {
+namespace sx::Metal {
 
-class Buffer final : public ::Buffer {
+class Buffer final : public sx::Buffer<Device> {
 public:
-    const std::shared_ptr<const Device> device;
+    explicit Buffer(std::shared_ptr<const Device> device, std::size_t size) :
+        sx::Buffer<Device>{device}, handle_{device->allocate(size)} {}
+    ~Buffer() noexcept override {
+        device()->deallocate(handle_);
+    }
 
-    Buffer(std::shared_ptr<const Device> device, std::size_t size);
-    ~Buffer() noexcept override;
-
-    std::byte *data() const noexcept override;
-    std::size_t size() const noexcept override;
+    std::byte *data() const noexcept override {
+        return static_cast<std::byte *>(handle_->contents());
+    }
+    std::size_t size() const noexcept override {
+        return handle_->length();
+    }
 
 private:
     MTL::Buffer *const handle_;
 };
 
-} // namespace Metal
+} // namespace sx::Metal

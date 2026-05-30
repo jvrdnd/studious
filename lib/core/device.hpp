@@ -5,6 +5,8 @@
 
 #include "platform.hpp"
 
+namespace sx {
+
 class Device {
 public:
     virtual ~Device() noexcept = default;
@@ -19,7 +21,9 @@ public:
     [[nodiscard]] std::string repr() const;
 
 protected:
-    Device() = default;
+    explicit Device() = default;
 
     [[nodiscard]] virtual std::string repr_() const = 0;
 };
+
+} // namespace sx

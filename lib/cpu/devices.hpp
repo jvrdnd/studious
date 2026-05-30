@@ -4,6 +4,6 @@
 
 #include "../core/devices.hpp"
 
-namespace Cpu {
+namespace sx::Cpu {
 [[nodiscard]] std::vector<DevicePtr> devices();
 }

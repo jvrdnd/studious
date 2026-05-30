@@ -1,11 +1,18 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
+#include <memory>
 #include <nanobind/nanobind.h>
 #include <utility>
 
+#include "device.hpp"
 #include "dtype.hpp"
 
+namespace sx {
+
+template <typename D>
+    requires std::derived_from<D, Device>
 class Buffer {
 public:
     virtual ~Buffer() noexcept = default;
@@ -15,23 +22,29 @@ public:
     Buffer(Buffer &&) = delete;
     Buffer &operator=(Buffer &&) = delete;
 
-    virtual std::byte *data() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
+    [[nodiscard]] std::shared_ptr<const D> device() const noexcept {
+        return device_;
+    }
+
+    [[nodiscard]] virtual std::byte *data() const noexcept = 0;
+    [[nodiscard]] virtual std::size_t size() const noexcept = 0;
 
 protected:
-    Buffer() = default;
+    explicit Buffer(std::shared_ptr<const D> device) noexcept : device_{std::move(device)} {}
+
+private:
+    const std::shared_ptr<const D> device_;
 };
 
 namespace nb = nanobind;
 
-template <typename DispatchDType>
-std::size_t memcpy(std::byte *ptr, nb::handle data, DispatchDType &&dispatch_dtype, DType dtype) {
+template <typename F> std::size_t memcpy(std::byte *ptr, nb::handle data, F &&dispatch_dtype, DType dtype) {
     std::size_t offset;
 
     if (nb::isinstance<nb::list>(data)) {
         offset = 0;
         for (nb::handle item : nb::borrow<nb::list>(data)) {
-            offset += memcpy(ptr + offset, item, std::forward<DispatchDType>(dispatch_dtype), dtype);
+            offset += memcpy(ptr + offset, item, std::forward<F>(dispatch_dtype), dtype);
         }
 
     } else {
@@ -44,3 +57,5 @@ std::size_t memcpy(std::byte *ptr, nb::handle data, DispatchDType &&dispatch_dty
 
     return offset;
 }
+
+} // namespace sx

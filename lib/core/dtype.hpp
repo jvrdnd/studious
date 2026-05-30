@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <string_view>
 
+namespace sx {
+
 enum class DType { Bool, UInt8, Int32, Float16, Float32, BFloat16 };
 
 namespace {
@@ -29,3 +31,5 @@ constexpr std::string_view dtype_name(DType dtype) {
 constexpr std::size_t dtype_size(DType dtype) {
     return dtype_traits[static_cast<std::size_t>(dtype)].size;
 }
+
+} // namespace sx

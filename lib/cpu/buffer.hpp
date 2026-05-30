@@ -8,21 +8,26 @@
 #include "../core/buffer.hpp"
 #include "device.hpp"
 
-namespace Cpu {
+namespace sx::Cpu {
 
-class Buffer final : public ::Buffer {
+class Buffer final : public sx::Buffer<Device> {
 public:
-    const std::shared_ptr<const Device> device;
+    explicit Buffer(std::shared_ptr<const Device> device, std::size_t size) :
+        sx::Buffer<Device>{device}, data_{device->allocate(size)}, size_{size} {}
+    ~Buffer() noexcept override {
+        device()->deallocate(data_);
+    }
 
-    Buffer(std::shared_ptr<const Device> device, std::size_t size);
-    ~Buffer() noexcept override;
-
-    std::byte *data() const noexcept override;
-    std::size_t size() const noexcept override;
+    [[nodiscard]] std::byte *data() const noexcept override {
+        return data_;
+    }
+    [[nodiscard]] std::size_t size() const noexcept override {
+        return size_;
+    }
 
 private:
     std::byte *const data_;
     const std::size_t size_;
 };
 
-} // namespace Cpu
+} // namespace sx::Cpu

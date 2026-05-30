@@ -4,6 +4,6 @@
 
 #include "../core/devices.hpp"
 
-namespace Metal {
+namespace sx::Metal {
 [[nodiscard]] std::vector<DevicePtr> devices();
 }

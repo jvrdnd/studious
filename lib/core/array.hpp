@@ -1,36 +1,51 @@
 #pragma once
 
+#include <concepts>
 #include <memory>
-#include <nanobind/nanobind.h>
 #include <span>
-#include <sstream>
-#include <string>
+#include <vector>
 
+#include "buffer.hpp"
 #include "device.hpp"
 #include "dtype.hpp"
 
+namespace sx {
+
+struct ArraySpec {
+    DType dtype;
+    std::size_t size;
+    std::vector<std::size_t> shape;
+};
+ArraySpec infer_array_spec(nb::handle data, std::optional<DType> dtype);
+
+template <typename D>
+    requires std::derived_from<D, Device>
 class Array {
 public:
+    Array(DType dtype, std::size_t size, std::vector<std::size_t> shape, std::shared_ptr<const Buffer<D>> buffer) :
+        dtype_{dtype}, size_{size}, shape_{std::move(shape)}, buffer_{std::move(buffer)} {}
     virtual ~Array() noexcept = default;
 
-protected:
-    Array() = default;
-};
-
-std::shared_ptr<Array>
-make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<const Device> device);
-
-template <typename T> std::string repr(std::span<const T> span) {
-    std::ostringstream os;
-    os << "array([";
-
-    for (std::size_t i{0}; i < span.size(); i++) {
-        if (i > 0) {
-            os << ", ";
-        }
-        os << span[i];
+    DType dtype() const noexcept {
+        return dtype_;
+    }
+    std::size_t size() const noexcept {
+        return size_;
+    }
+    std::span<const std::size_t> shape() const noexcept {
+        return shape_;
     }
 
-    os << "])";
-    return os.str();
-}
+    [[nodiscard]] std::shared_ptr<const Buffer<D>> buffer() const noexcept {
+        return buffer_;
+    }
+
+private:
+    const DType dtype_;
+    const std::size_t size_;
+    const std::vector<std::size_t> shape_;
+
+    const std::shared_ptr<const Buffer<D>> buffer_;
+};
+
+} // namespace sx

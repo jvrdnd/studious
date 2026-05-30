@@ -11,6 +11,9 @@
 #include "./core/dtype.hpp"
 #include "./cpu/array.hpp"
 #include "./cpu/device.hpp"
+#include "./metal/device.hpp"
+
+namespace sx {
 
 namespace nb = nanobind;
 
@@ -40,7 +43,9 @@ NB_MODULE(_lib, m) {
         nb::arg("platform") = nb::none()
     );
 
-    nb::class_<::Array> Array_{m, "Array"};
-    nb::class_<Cpu::Array, ::Array> CpuArray_{m, "CpuArray"};
-    m.def("make_array", &make_array);
+    nb::class_<Array<Cpu::Device>> CpuArray_{m, "CpuArray"};
+    nb::class_<Array<Metal::Device>> MetalArray_{m, "MetalArray"};
+    m.def("make_array", &Cpu::make_array);
 }
+
+} // namespace sx

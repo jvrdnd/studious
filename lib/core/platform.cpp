@@ -2,6 +2,8 @@
 
 #include "platform.hpp"
 
+namespace sx {
+
 std::string_view platform_name(Platform platform) {
     switch (platform) {
         case Platform::Cpu:
@@ -9,5 +11,7 @@ std::string_view platform_name(Platform platform) {
         case Platform::Metal:
             return "metal";
     }
-    throw std::invalid_argument{ "invalid platform" };
+    throw std::invalid_argument{"invalid platform"};
 }
+
+} // namespace sx

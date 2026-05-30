@@ -6,7 +6,9 @@
 #include "device.hpp"
 #include "devices.hpp"
 
-std::vector<DevicePtr> Metal::devices() {
+namespace sx::Metal {
+
+std::vector<DevicePtr> devices() {
     std::vector<DevicePtr> devices;
 
     NS::SharedPtr<NS::AutoreleasePool> pool{NS::TransferPtr(NS::AutoreleasePool::alloc()->init())};
@@ -17,9 +19,11 @@ std::vector<DevicePtr> Metal::devices() {
 
         for (NS::UInteger i{0}; i < mtl_devices->count(); ++i) {
             auto *mtl_device{static_cast<MTL::Device *>(mtl_devices->object(i))};
-            devices.push_back(std::make_shared<Metal::Device>(mtl_device->registryID(), mtl_device));
+            devices.push_back(std::make_shared<Device>(mtl_device->registryID(), mtl_device));
         }
     }
 
     return devices;
 }
+
+} // namespace sx::Metal

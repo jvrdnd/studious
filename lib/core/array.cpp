@@ -1,19 +1,14 @@
 #include <cstddef>
 #include <functional>
-#include <memory>
 #include <nanobind/nanobind.h>
 #include <numeric>
 #include <optional>
-#include <stdexcept>
 #include <vector>
 
-#include "../cpu/array.hpp"
-#include "../cpu/buffer.hpp"
 #include "array.hpp"
 #include "dtype.hpp"
-#include "platform.hpp"
 
-namespace nb = nanobind;
+namespace sx {
 
 namespace {
 
@@ -21,7 +16,7 @@ std::vector<std::size_t> infer_shape(nb::handle data) {
     std::vector<std::size_t> shape;
     while (nb::isinstance<nb::list>(data)) {
         auto list = nb::borrow<nb::list>(data);
-        shape.push_back((list.size()));
+        shape.push_back(list.size());
         if (list.size() == 0) {
             break;
         }
@@ -70,24 +65,15 @@ std::optional<DType> infer_dtype(nb::handle data, const std::vector<std::size_t>
 
 } // namespace
 
-std::shared_ptr<Array> make_array(nb::handle data, std::optional<DType> dtype, std::shared_ptr<const Device> device) {
-    std::vector<std::size_t> shape{infer_shape(data)};
-    std::size_t length = std::accumulate(shape.begin(), shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
-    DType dtype_value{infer_dtype(data, shape).value_or(DType::Float32)};
-    dtype_value = dtype.value_or(dtype_value);
+ArraySpec infer_array_spec(nb::handle data, std::optional<DType> dtype) {
+    ArraySpec spec;
 
-    switch (device->platform()) {
-        case Platform::Cpu: {
-            std::shared_ptr<const Cpu::Buffer> buffer = std::make_shared<Cpu::Buffer>(
-                std::dynamic_pointer_cast<const Cpu::Device>(device),
-                dtype_size(dtype_value) * length
-            );
-            memcpy(buffer->data(), data, Cpu::dispatch_dtype, dtype_value);
-            return std::make_shared<Cpu::Array>(buffer, dtype_value, std::move(shape));
-        }
-        case Platform::Metal:
-            break; // ...
-    }
+    spec.shape = infer_shape(data);
+    spec.size = std::accumulate(spec.shape.begin(), spec.shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
 
-    throw std::invalid_argument{"invalid backend"};
+    spec.dtype = dtype.value_or(infer_dtype(data, spec.shape).value_or(DType::Float32));
+
+    return spec;
 }
+
+} // namespace sx

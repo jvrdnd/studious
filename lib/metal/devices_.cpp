@@ -1,7 +1,7 @@
 #include "devices.hpp"
 
-namespace Metal {
+namespace sx::Metal {
 [[nodiscard]] std::vector<DevicePtr> devices() {
     return {};
 }
-} // namespace Metal
+} // namespace sx::Metal

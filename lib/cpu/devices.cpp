@@ -4,8 +4,12 @@
 #include "device.hpp"
 #include "devices.hpp"
 
-std::vector<DevicePtr> Cpu::devices() {
+namespace sx::Cpu {
+
+std::vector<DevicePtr> devices() {
     std::vector<DevicePtr> devices;
-    devices.push_back(std::make_shared<Cpu::Device>());
+    devices.push_back(std::make_shared<Device>());
     return devices;
 }
+
+} // namespace sx::Cpu
