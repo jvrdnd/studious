@@ -1,7 +1,5 @@
 #include <cstddef>
-#include <functional>
 #include <nanobind/nanobind.h>
-#include <numeric>
 #include <optional>
 #include <vector>
 
@@ -10,9 +8,9 @@
 
 namespace sx {
 
-namespace {
+namespace nb = nanobind;
 
-std::vector<std::size_t> infer_shape(nb::handle data) {
+std::vector<std::size_t> infer_nb_shape(nb::handle data) {
     std::vector<std::size_t> shape;
     while (nb::isinstance<nb::list>(data)) {
         auto list = nb::borrow<nb::list>(data);
@@ -25,7 +23,7 @@ std::vector<std::size_t> infer_shape(nb::handle data) {
     return shape;
 }
 
-std::optional<DType> infer_dtype(nb::handle data, const std::vector<std::size_t> &shape, std::size_t depth = 0) {
+std::optional<DType> infer_nb_dtype(nb::handle data, const std::vector<std::size_t> &shape, std::size_t depth) {
     if (depth == shape.size()) {
         if (nb::isinstance<nb::bool_>(data)) {
             return DType::Bool;
@@ -50,7 +48,7 @@ std::optional<DType> infer_dtype(nb::handle data, const std::vector<std::size_t>
 
     std::optional<DType> dtype;
     for (std::size_t i{0}; i < list.size(); i++) {
-        std::optional<DType> item_dtype{infer_dtype(list[i], shape, depth + 1)};
+        std::optional<DType> item_dtype{infer_nb_dtype(list[i], shape, depth + 1)};
         if (dtype == DType::Float32 || item_dtype == DType::Float32) {
             dtype = DType::Float32;
         } else if (dtype == DType::Int32 || item_dtype == DType::Int32) {
@@ -61,19 +59,6 @@ std::optional<DType> infer_dtype(nb::handle data, const std::vector<std::size_t>
     }
 
     return dtype;
-}
-
-} // namespace
-
-ArraySpec infer_array_spec(nb::handle data, std::optional<DType> dtype) {
-    ArraySpec spec;
-
-    spec.shape = infer_shape(data);
-    spec.size = std::accumulate(spec.shape.begin(), spec.shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
-
-    spec.dtype = dtype.value_or(infer_dtype(data, spec.shape).value_or(DType::Float32));
-
-    return spec;
 }
 
 } // namespace sx

@@ -2,6 +2,8 @@
 
 #include <concepts>
 #include <memory>
+#include <nanobind/nanobind.h>
+#include <numeric>
 #include <span>
 #include <vector>
 
@@ -10,13 +12,6 @@
 #include "dtype.hpp"
 
 namespace sx {
-
-struct ArraySpec {
-    DType dtype;
-    std::size_t size;
-    std::vector<std::size_t> shape;
-};
-ArraySpec infer_array_spec(nb::handle data, std::optional<DType> dtype);
 
 template <typename D>
     requires std::derived_from<D, Device>
@@ -47,5 +42,24 @@ private:
 
     const std::shared_ptr<const Buffer<D>> buffer_;
 };
+
+[[nodiscard]] std::vector<std::size_t> infer_nb_shape(nanobind::handle data);
+[[nodiscard]] std::optional<DType>
+infer_nb_dtype(nanobind::handle data, const std::vector<std::size_t> &shape, std::size_t depth = 0);
+
+template <typename D, typename B>
+    requires std::derived_from<D, Device> && std::derived_from<B, sx::Buffer<D>>
+[[nodiscard]] std::shared_ptr<Array<D>>
+make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<const D> device) {
+    const std::vector<std::size_t> shape = infer_nb_shape(data);
+    const std::size_t size =
+        std::accumulate(shape.begin(), shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
+    DType dtype_required = dtype.value_or(infer_nb_dtype(data, shape).value_or(DType::Float32));
+
+    std::shared_ptr<const sx::Buffer<D>> buffer = std::make_shared<B>(device, dtype_size(dtype_required) * size);
+    memcpy(buffer->data(), data, dtype_required);
+
+    return std::make_shared<Array<D>>(dtype_required, size, std::move(shape), buffer);
+}
 
 } // namespace sx

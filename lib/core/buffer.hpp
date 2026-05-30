@@ -36,26 +36,6 @@ private:
     const std::shared_ptr<const D> device_;
 };
 
-namespace nb = nanobind;
-
-template <typename F> std::size_t memcpy(std::byte *ptr, nb::handle data, F &&dispatch_dtype, DType dtype) {
-    std::size_t offset;
-
-    if (nb::isinstance<nb::list>(data)) {
-        offset = 0;
-        for (nb::handle item : nb::borrow<nb::list>(data)) {
-            offset += memcpy(ptr + offset, item, std::forward<F>(dispatch_dtype), dtype);
-        }
-
-    } else {
-        dispatch_dtype(dtype, [&]<typename T>() {
-            T scalar = nb::cast<T>(data);
-            offset = sizeof(T);
-            std::memcpy(ptr, &scalar, offset);
-        });
-    }
-
-    return offset;
-}
+std::size_t memcpy(std::byte *ptr, nanobind::handle data, DType dtype);
 
 } // namespace sx

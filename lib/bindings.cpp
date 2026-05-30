@@ -5,13 +5,15 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
-#include "./core/array.hpp"
-#include "./core/device.hpp"
-#include "./core/devices.hpp"
-#include "./core/dtype.hpp"
-#include "./cpu/array.hpp"
-#include "./cpu/device.hpp"
-#include "./metal/device.hpp"
+#include "casters.hpp"
+#include "core/array.hpp"
+#include "core/device.hpp"
+#include "core/devices.hpp"
+#include "core/dtype.hpp"
+#include "cpu/buffer.hpp"
+#include "cpu/device.hpp"
+#include "metal/buffer.hpp"
+#include "metal/device.hpp"
 
 namespace sx {
 
@@ -30,6 +32,7 @@ NB_MODULE(_lib, m) {
 
     nb::class_<Device>{m, "Device"}.def_prop_ro("platform", &Device::platform).def("__repr__", &Device::repr);
     nb::class_<Cpu::Device, Device> CpuDevice_{m, "CpuDevice"};
+    nb::class_<Metal::Device, Device> MetalDevice_{m, "MetalDevice"};
 
     // devices(platform: Platform | None = None)
     m.def(
@@ -45,7 +48,8 @@ NB_MODULE(_lib, m) {
 
     nb::class_<Array<Cpu::Device>> CpuArray_{m, "CpuArray"};
     nb::class_<Array<Metal::Device>> MetalArray_{m, "MetalArray"};
-    m.def("make_array", &Cpu::make_array);
+    m.def("make_array", &make_array<Cpu::Device, Cpu::Buffer>);
+    m.def("make_array", &make_array<Metal::Device, Metal::Buffer>);
 }
 
 } // namespace sx

@@ -30,4 +30,9 @@ private:
     const std::size_t size_;
 };
 
+[[nodiscard]] inline std::shared_ptr<const sx::Buffer<Device>>
+make_buffer(std::shared_ptr<const Device> device, std::size_t size) {
+    return std::make_shared<Buffer>(std::move(device), size);
+}
+
 } // namespace sx::Cpu
