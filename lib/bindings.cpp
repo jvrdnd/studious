@@ -46,8 +46,8 @@ NB_MODULE(_lib, m) {
         nb::arg("platform") = nb::none()
     );
 
-    nb::class_<Array<Cpu::Device>> CpuArray_{m, "CpuArray"};
-    nb::class_<Array<Metal::Device>> MetalArray_{m, "MetalArray"};
+    nb::class_<Array<Cpu::Buffer>> CpuArray_{m, "CpuArray"};
+    nb::class_<Array<Metal::Buffer>> MetalArray_{m, "MetalArray"};
     m.def("make_array", &make_array<Cpu::Device, Cpu::Buffer>);
     m.def("make_array", &make_array<Metal::Device, Metal::Buffer>);
 }

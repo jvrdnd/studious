@@ -15,6 +15,8 @@ template <typename D>
     requires std::derived_from<D, Device>
 class Buffer {
 public:
+    using device_type = D;
+
     virtual ~Buffer() noexcept = default;
 
     Buffer(const Buffer &) = delete;
