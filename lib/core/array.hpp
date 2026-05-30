@@ -17,15 +17,12 @@ template <typename D>
     requires std::derived_from<D, Device>
 class Array {
 public:
-    Array(DType dtype, std::size_t size, std::vector<std::size_t> shape, std::shared_ptr<const Buffer<D>> buffer) :
-        dtype_{dtype}, size_{size}, shape_{std::move(shape)}, buffer_{std::move(buffer)} {}
+    Array(DType dtype, std::vector<std::size_t> shape, std::shared_ptr<const Buffer<D>> buffer) :
+        dtype_{dtype}, shape_{std::move(shape)}, buffer_{std::move(buffer)} {}
     virtual ~Array() noexcept = default;
 
     DType dtype() const noexcept {
         return dtype_;
-    }
-    std::size_t size() const noexcept {
-        return size_;
     }
     std::span<const std::size_t> shape() const noexcept {
         return shape_;
@@ -37,7 +34,6 @@ public:
 
 private:
     const DType dtype_;
-    const std::size_t size_;
     const std::vector<std::size_t> shape_;
 
     const std::shared_ptr<const Buffer<D>> buffer_;
@@ -59,7 +55,7 @@ make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<co
     std::shared_ptr<const sx::Buffer<D>> buffer = std::make_shared<B>(device, dtype_size(dtype_required) * size);
     memcpy(buffer->data(), data, dtype_required);
 
-    return std::make_shared<Array<D>>(dtype_required, size, std::move(shape), buffer);
+    return std::make_shared<Array<D>>(dtype_required, std::move(shape), buffer);
 }
 
 } // namespace sx
