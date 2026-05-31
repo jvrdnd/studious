@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "device.hpp"
+#include "types.hpp"
 
 namespace sx {
 
@@ -47,7 +48,15 @@ template <typename T> std::size_t memcpy(std::byte *ptr, nanobind::handle data) 
         }
 
     } else {
-        const T scalar = nanobind::cast<T>(data);
+        T scalar;
+        if (nanobind::isinstance<nanobind::bool_>(data)) {
+            scalar = cast<T>(nanobind::cast<bool>(data));
+        } else if (nanobind::isinstance<nanobind::int_>(data)) {
+            scalar = cast<T>(nanobind::cast<std::int64_t>(data));
+        } else if (nanobind::isinstance<nanobind::float_>(data)) {
+            scalar = cast<T>(nanobind::cast<float>(data));
+        }
+
         offset = sizeof(T);
         std::memcpy(ptr, &scalar, offset);
     }

@@ -71,7 +71,9 @@ make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<co
     const std::vector<std::int64_t> strides = infer_strides(shape);
     const std::size_t size =
         std::accumulate(shape.begin(), shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
-    const DType resolved_dtype = dtype.value_or(infer_nb_dtype(data, shape).value_or(DType::Float32));
+
+    DType resolved_dtype{infer_nb_dtype(data, shape).value_or(DType::Float32)};
+    resolved_dtype = dtype.value_or(resolved_dtype);
 
     const std::shared_ptr<B> buffer = std::make_shared<B>(device, dtype_size(resolved_dtype) * size);
     dispatch_dtype(resolved_dtype, [&]<typename T>() { memcpy<T>(buffer->data(), data); });

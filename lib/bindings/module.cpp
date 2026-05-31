@@ -19,7 +19,7 @@
 #include "../cpu/device.hpp"
 #include "../metal/buffer.hpp"
 #include "../metal/device.hpp"
-#include "casters.hpp"
+// #include "casters.hpp"
 #include "dlpack.hpp"
 
 namespace sx {
@@ -61,7 +61,9 @@ NB_MODULE(_lib, m) {
         nanobind::kw_only(),
         nanobind::arg("stream") = nanobind::none()
     );
-    CpuArray_.def("__dlpack_device__", [](const Array<Cpu::Buffer> &) { return std::make_tuple(1, 0); }); // 1 = cpu
+    CpuArray_.def("__dlpack_device__", [](const Array<Cpu::Buffer> &) {
+        return std::make_tuple(nanobind::device::cpu::value, 0);
+    });
 
     m.def(
         "make_array",
@@ -85,8 +87,8 @@ NB_MODULE(_lib, m) {
         nanobind::arg("stream") = nanobind::none()
     );
     MetalArray_.def("__dlpack_device__", [](const Array<Metal::Buffer> &self) {
-        return std::make_tuple(8, self.buffer()->device()->id());
-    }); // 8 = metal
+        return std::make_tuple(nanobind::device::metal::value, self.buffer()->device()->id());
+    });
 
     m.def(
         "make_array",

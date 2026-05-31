@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <ostream>
 
@@ -28,5 +29,17 @@ std::ostream &operator<<(std::ostream &os, BFloat16 h);
 
 [[nodiscard]] std::uint16_t f32_to_bf16(float f) noexcept;
 [[nodiscard]] float bf16_to_f32(std::uint16_t h) noexcept;
+
+template <typename T> [[nodiscard]] T cast(auto x) {
+    if constexpr (std::same_as<T, Bool>) {
+        return Bool{bool_to_u8(static_cast<bool>(x))};
+    } else if constexpr (std::same_as<T, Float16>) {
+        return Float16{f32_to_f16(static_cast<float>(x))};
+    } else if constexpr (std::same_as<T, BFloat16>) {
+        return BFloat16{f32_to_bf16(static_cast<float>(x))};
+    } else {
+        return static_cast<T>(x);
+    }
+}
 
 } // namespace sx

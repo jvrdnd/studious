@@ -27,7 +27,7 @@ namespace sx {
 template <BufferType B> nanobind::capsule dlpack(nanobind::handle data) {
     const auto *array = nanobind::cast<Array<B> *>(data);
     const DType dtype = array->dtype();
-    const nanobind::ndarray ndarray{
+    const nanobind::ndarray pack{
         array->buffer()->data(),
         array->shape().size(),
         array->shape().data(),
@@ -39,7 +39,7 @@ template <BufferType B> nanobind::capsule dlpack(nanobind::handle data) {
             .lanes = 1,
         }
     };
-    return nanobind::borrow<nanobind::capsule>(nanobind::cast(ndarray, nanobind::rv_policy::automatic));
+    return nanobind::borrow<nanobind::capsule>(nanobind::cast(pack, nanobind::rv_policy::automatic));
 }
 
 } // namespace sx
