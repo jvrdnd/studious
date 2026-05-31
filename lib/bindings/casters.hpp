@@ -1,6 +1,6 @@
 #include <nanobind/nanobind.h>
 
-#include "core/types.hpp"
+#include "../core/types.hpp"
 
 NAMESPACE_BEGIN(NB_NAMESPACE)
 NAMESPACE_BEGIN(detail)

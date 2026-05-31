@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "device.hpp"
-#include "dtype.hpp"
 
 namespace sx {
 
@@ -38,6 +37,22 @@ private:
     const std::shared_ptr<const D> device_;
 };
 
-std::size_t memcpy(std::byte *ptr, nanobind::handle data, DType dtype);
+template <typename T> std::size_t memcpy(std::byte *ptr, nanobind::handle data) {
+    std::size_t offset;
+
+    if (nanobind::isinstance<nanobind::list>(data)) {
+        offset = 0;
+        for (nanobind::handle item : nanobind::borrow<nanobind::list>(data)) {
+            offset += memcpy<T>(ptr + offset, item);
+        }
+
+    } else {
+        const T scalar = nanobind::cast<T>(data);
+        offset = sizeof(T);
+        std::memcpy(ptr, &scalar, offset);
+    }
+
+    return offset;
+}
 
 } // namespace sx

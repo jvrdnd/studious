@@ -4,11 +4,19 @@
 
 namespace sx {
 
+std::ostream &operator<<(std::ostream &os, Bool b) {
+    return os << (u8_to_bool(b.bits) ? "True" : "False");
+}
+
 bool u8_to_bool(std::uint8_t u) noexcept {
     return u != 0;
 }
 std::uint8_t bool_to_u8(bool b) noexcept {
     return static_cast<std::uint8_t>(b);
+}
+
+std::ostream &operator<<(std::ostream &os, Float16 h) {
+    return os << f16_to_f32(h.bits);
 }
 
 std::uint16_t f32_to_f16(float f) noexcept {
@@ -94,6 +102,10 @@ float f16_to_f32(std::uint16_t h) noexcept {
     }
 
     return std::bit_cast<float>(out);
+}
+
+std::ostream &operator<<(std::ostream &os, BFloat16 h) {
+    return os << bf16_to_f32(h.bits);
 }
 
 std::uint16_t f32_to_bf16(float f) noexcept {

@@ -15,7 +15,7 @@ find_package(nanobind CONFIG REQUIRED)
 file(GLOB_RECURSE STUDIOUS_SOURCES CONFIGURE_DEPENDS
     lib/core/*.cpp
     lib/cpu/*.cpp
-    lib/bindings.cpp
+    lib/bindings/*.cpp
 )
 
 if(APPLE)

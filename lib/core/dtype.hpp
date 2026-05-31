@@ -10,8 +10,6 @@ namespace sx {
 
 enum class DType { Bool, UInt8, Int32, Float16, Float32, BFloat16 };
 
-namespace {
-
 struct dtype_trait {
     std::string_view name;
     std::size_t size;
@@ -25,16 +23,17 @@ inline constexpr std::array<dtype_trait, 6> dtype_traits = {
     dtype_trait{"bf16", 2},
 };
 
-} // namespace
-
-[[nodiscard]] constexpr std::string_view dtype_name(DType dtype) noexcept {
-    return dtype_traits[static_cast<std::size_t>(dtype)].name;
-}
 [[nodiscard]] constexpr std::size_t dtype_size(DType dtype) noexcept {
     return dtype_traits[static_cast<std::size_t>(dtype)].size;
 }
+static_assert(sizeof(Bool) == dtype_size(DType::Bool));
+static_assert(sizeof(std::uint8_t) == dtype_size(DType::UInt8));
+static_assert(sizeof(std::int32_t) == dtype_size(DType::Int32));
+static_assert(sizeof(Float16) == dtype_size(DType::Float16));
+static_assert(sizeof(float) == dtype_size(DType::Float32));
+static_assert(sizeof(BFloat16) == dtype_size(DType::BFloat16));
 
-template <typename F> decltype(auto) dispatch_dtype_impl(DType dtype, F &&f) {
+template <typename F> decltype(auto) dispatch_dtype(DType dtype, F &&f) {
     switch (dtype) {
         case DType::Bool:
             return std::forward<F>(f).template operator()<Bool>();
@@ -50,9 +49,5 @@ template <typename F> decltype(auto) dispatch_dtype_impl(DType dtype, F &&f) {
             return std::forward<F>(f).template operator()<BFloat16>();
     }
 }
-
-inline auto dispatch_dtype = [](DType dtype, auto &&f) -> decltype(auto) {
-    return dispatch_dtype_impl(dtype, std::forward<decltype(f)>(f));
-};
 
 } // namespace sx
