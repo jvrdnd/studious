@@ -23,7 +23,7 @@ public:
     using buffer_type = B;
 
     Array(
-        DType dtype,
+        Dtype dtype,
         std::vector<std::size_t> shape,
         std::vector<std::int64_t> strides,
         std::shared_ptr<const B> buffer
@@ -31,7 +31,7 @@ public:
         dtype_{dtype}, shape_{std::move(shape)}, strides_{std::move(strides)}, buffer_{std::move(buffer)} {}
     virtual ~Array() noexcept = default;
 
-    [[nodiscard]] DType dtype() const noexcept {
+    [[nodiscard]] Dtype dtype() const noexcept {
         return dtype_;
     }
     [[nodiscard]] std::span<const std::size_t> shape() const noexcept {
@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    const DType dtype_;
+    const Dtype dtype_;
     const std::vector<std::size_t> shape_;
     const std::vector<std::int64_t> strides_;
 
@@ -55,7 +55,7 @@ private:
 
 [[nodiscard]] std::vector<std::size_t> infer_nb_shape(nanobind::handle data);
 [[nodiscard]] std::vector<std::int64_t> infer_strides(const std::vector<std::size_t> &shape);
-[[nodiscard]] std::optional<DType>
+[[nodiscard]] std::optional<Dtype>
 infer_nb_dtype(nanobind::handle data, const std::vector<std::size_t> &shape, std::size_t depth = 0);
 
 template <typename D, typename B>
@@ -66,13 +66,13 @@ template <typename D, typename B>
         std::derived_from<B, sx::Buffer<D>>
     )
 [[nodiscard]] std::shared_ptr<Array<B>>
-make_array(nanobind::handle data, std::optional<DType> dtype, std::shared_ptr<const D> device) {
+make_array(nanobind::handle data, std::optional<Dtype> dtype, std::shared_ptr<const D> device) {
     const std::vector<std::size_t> shape = infer_nb_shape(data);
     const std::vector<std::int64_t> strides = infer_strides(shape);
     const std::size_t size =
         std::accumulate(shape.begin(), shape.end(), std::size_t{1}, std::multiplies<std::size_t>{});
 
-    DType resolved_dtype{infer_nb_dtype(data, shape).value_or(DType::Float32)};
+    Dtype resolved_dtype{infer_nb_dtype(data, shape).value_or(Dtype::Float32)};
     resolved_dtype = dtype.value_or(resolved_dtype);
 
     const std::shared_ptr<B> buffer = std::make_shared<B>(device, dtype_size(resolved_dtype) * size);

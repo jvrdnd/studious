@@ -1,32 +1,38 @@
+#pragma once
+
+#include <cstddef>
 #include <cstdint>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
+#include <variant>
+#include <vector>
 
 #include "../core/array.hpp"
 #include "../core/dtype.hpp"
+#include "../core/platform.hpp"
 
 namespace sx {
 
-[[nodiscard]] constexpr nanobind::dlpack::dtype_code dtype_code(DType dtype) {
-    using dtype_code = nanobind::dlpack::dtype_code;
-    switch (dtype) {
-        case DType::Bool:
-            return dtype_code::Bool;
-        case DType::UInt8:
-            return dtype_code::UInt;
-        case DType::Int32:
-            return dtype_code::Int;
-        case DType::Float16:
-        case DType::Float32:
-            return dtype_code::Float;
-        case DType::BFloat16:
-            return dtype_code::Bfloat;
-    }
-}
+struct DlpackArray {
+    struct Device {
+        Platform platform;
+        std::int32_t id;
+    };
 
-template <BufferType B> nanobind::capsule dlpack(nanobind::handle data) {
+    Device device;
+    Dtype dtype;
+    std::vector<std::size_t> shape;
+    std::vector<std::ptrdiff_t> strides;
+    std::variant<std::vector<bool>, std::vector<std::int32_t>, std::vector<float>> data;
+};
+[[nodiscard]] Platform from_dlpack_platform(std::int32_t platform);
+[[nodiscard]] Dtype from_dlpack_dtype(nanobind::dlpack::dtype dtype);
+[[nodiscard]] DlpackArray from_dlpack(nanobind::object data);
+
+[[nodiscard]] nanobind::dlpack::dtype_code to_dlpack_dtype_code(Dtype dtype);
+template <BufferType B> nanobind::capsule to_dlpack(nanobind::handle data) {
     const auto *array = nanobind::cast<Array<B> *>(data);
-    const DType dtype = array->dtype();
+    const Dtype dtype = array->dtype();
     const nanobind::ndarray pack{
         array->buffer()->data(),
         array->shape().size(),
@@ -34,7 +40,7 @@ template <BufferType B> nanobind::capsule dlpack(nanobind::handle data) {
         data,
         array->strides().data(),
         {
-            .code = static_cast<std::uint8_t>(dtype_code(dtype)),
+            .code = static_cast<std::uint8_t>(to_dlpack_dtype_code(dtype)),
             .bits = static_cast<std::uint8_t>(8 * dtype_size(dtype)),
             .lanes = 1,
         }

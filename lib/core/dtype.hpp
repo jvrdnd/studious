@@ -8,7 +8,7 @@
 
 namespace sx {
 
-enum class DType { Bool, UInt8, Int32, Float16, Float32, BFloat16 };
+enum class Dtype { Bool, Uint8, Int32, Float16, Float32, Bfloat16 };
 
 struct dtype_trait {
     std::string_view name;
@@ -23,30 +23,30 @@ inline constexpr std::array<dtype_trait, 6> dtype_traits = {
     dtype_trait{"bf16", 2},
 };
 
-[[nodiscard]] constexpr std::size_t dtype_size(DType dtype) noexcept {
+[[nodiscard]] constexpr std::size_t dtype_size(Dtype dtype) noexcept {
     return dtype_traits[static_cast<std::size_t>(dtype)].size;
 }
-static_assert(sizeof(Bool) == dtype_size(DType::Bool));
-static_assert(sizeof(std::uint8_t) == dtype_size(DType::UInt8));
-static_assert(sizeof(std::int32_t) == dtype_size(DType::Int32));
-static_assert(sizeof(Float16) == dtype_size(DType::Float16));
-static_assert(sizeof(float) == dtype_size(DType::Float32));
-static_assert(sizeof(BFloat16) == dtype_size(DType::BFloat16));
+static_assert(sizeof(Bool) == dtype_size(Dtype::Bool));
+static_assert(sizeof(std::uint8_t) == dtype_size(Dtype::Uint8));
+static_assert(sizeof(std::int32_t) == dtype_size(Dtype::Int32));
+static_assert(sizeof(Float16) == dtype_size(Dtype::Float16));
+static_assert(sizeof(float) == dtype_size(Dtype::Float32));
+static_assert(sizeof(Bfloat16) == dtype_size(Dtype::Bfloat16));
 
-template <typename F> decltype(auto) dispatch_dtype(DType dtype, F &&f) {
+template <typename F> decltype(auto) dispatch_dtype(Dtype dtype, F &&f) {
     switch (dtype) {
-        case DType::Bool:
+        case Dtype::Bool:
             return std::forward<F>(f).template operator()<Bool>();
-        case DType::UInt8:
+        case Dtype::Uint8:
             return std::forward<F>(f).template operator()<std::uint8_t>();
-        case DType::Int32:
+        case Dtype::Int32:
             return std::forward<F>(f).template operator()<std::int32_t>();
-        case DType::Float16:
+        case Dtype::Float16:
             return std::forward<F>(f).template operator()<Float16>();
-        case DType::Float32:
+        case Dtype::Float32:
             return std::forward<F>(f).template operator()<float>();
-        case DType::BFloat16:
-            return std::forward<F>(f).template operator()<BFloat16>();
+        case Dtype::Bfloat16:
+            return std::forward<F>(f).template operator()<Bfloat16>();
     }
 }
 

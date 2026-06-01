@@ -31,16 +31,16 @@ std::vector<std::int64_t> infer_strides(const std::vector<std::size_t> &shape) {
     return strides;
 }
 
-std::optional<DType> infer_nb_dtype(nanobind::handle data, const std::vector<std::size_t> &shape, std::size_t depth) {
+std::optional<Dtype> infer_nb_dtype(nanobind::handle data, const std::vector<std::size_t> &shape, std::size_t depth) {
     if (depth == shape.size()) {
         if (nanobind::isinstance<nanobind::bool_>(data)) {
-            return DType::Bool;
+            return Dtype::Bool;
         }
         if (nanobind::isinstance<nanobind::int_>(data)) {
-            return DType::Int32;
+            return Dtype::Int32;
         }
         if (nanobind::isinstance<nanobind::float_>(data)) {
-            return DType::Float32;
+            return Dtype::Float32;
         }
         throw nanobind::type_error("invalid array scalar");
     }
@@ -54,15 +54,15 @@ std::optional<DType> infer_nb_dtype(nanobind::handle data, const std::vector<std
         throw nanobind::type_error("invalid array shape");
     }
 
-    std::optional<DType> dtype;
-    for (std::size_t i{0}; i < list.size(); i++) {
-        std::optional<DType> item_dtype{infer_nb_dtype(list[i], shape, depth + 1)};
-        if (dtype == DType::Float32 || item_dtype == DType::Float32) {
-            dtype = DType::Float32;
-        } else if (dtype == DType::Int32 || item_dtype == DType::Int32) {
-            dtype = DType::Int32;
-        } else if (dtype == DType::Bool || item_dtype == DType::Bool) {
-            dtype = DType::Bool;
+    std::optional<Dtype> dtype;
+    for (std::size_t i{0}; i < list.size(); ++i) {
+        std::optional<Dtype> item_dtype{infer_nb_dtype(list[i], shape, depth + 1)};
+        if (dtype == Dtype::Float32 || item_dtype == Dtype::Float32) {
+            dtype = Dtype::Float32;
+        } else if (dtype == Dtype::Int32 || item_dtype == Dtype::Int32) {
+            dtype = Dtype::Int32;
+        } else if (dtype == Dtype::Bool || item_dtype == Dtype::Bool) {
+            dtype = Dtype::Bool;
         }
     }
 

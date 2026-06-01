@@ -104,7 +104,7 @@ float f16_to_f32(std::uint16_t h) noexcept {
     return std::bit_cast<float>(out);
 }
 
-std::ostream &operator<<(std::ostream &os, BFloat16 h) {
+std::ostream &operator<<(std::ostream &os, Bfloat16 h) {
     return os << bf16_to_f32(h.bits);
 }
 
