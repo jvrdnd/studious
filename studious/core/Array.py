@@ -3,7 +3,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from types import CapsuleType
 
-from .._lib import CpuArray, DType, MetalArray, from_dlpack
+from .._lib import (
+    CpuArray,
+    Device,
+    DType,
+    MetalArray,
+    dlpack_get_data,
+    dlpack_get_device,
+    dlpack_get_dtype,
+    dlpack_get_shape,
+    dlpack_get_strides,
+)
 
 
 @dataclass(frozen=True)
@@ -23,17 +33,21 @@ class Array:
         return str(self.data)
 
     @property
+    def device(self) -> Device:
+        return dlpack_get_device(self)
+
+    @property
     def dtype(self) -> DType:
-        return from_dlpack(self).dtype
+        return dlpack_get_dtype(self)
 
     @property
     def shape(self) -> list[int]:
-        return from_dlpack(self).shape
+        return dlpack_get_shape(self)
 
     @property
     def strides(self) -> list[int]:
-        return from_dlpack(self).strides
+        return dlpack_get_strides(self)
 
     @property
     def data(self) -> list[bool] | list[int] | list[float]:
-        return from_dlpack(self).data
+        return dlpack_get_data(self)

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../core/devices.hpp"
+#include "../core/device.hpp"
 
 namespace sx::Cpu {
 [[nodiscard]] std::vector<DevicePtr> devices();

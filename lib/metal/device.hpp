@@ -10,13 +10,13 @@ namespace sx::Metal {
 
 class Device final : public sx::Device {
 public:
-    explicit Device(std::uint64_t id, MTL::Device *device);
+    explicit Device(std::int32_t id, MTL::Device *device);
     ~Device() noexcept override;
 
     [[nodiscard]] Platform platform() const noexcept override {
         return Platform::Metal;
     }
-    [[nodiscard]] std::uint64_t id() const noexcept {
+    [[nodiscard]] std::int32_t id() const noexcept {
         return id_;
     }
 
@@ -27,7 +27,7 @@ protected:
     [[nodiscard]] std::string repr_() const override;
 
 private:
-    const std::uint64_t id_;
+    const std::int32_t id_;
     MTL::Device *const device_;
 };
 

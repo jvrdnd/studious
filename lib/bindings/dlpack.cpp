@@ -1,24 +1,50 @@
+#include <algorithm>
+#include <cstddef>
+#include <memory>
 #include <nanobind/ndarray.h>
 #include <stdexcept>
+#include <vector>
 
+#include "../core/device.hpp"
+#include "../core/platform.hpp"
+#include "../cpu/device.hpp"
 #include "../cpu/read.hpp"
+#include "../metal/device.hpp"
+#include "../metal/devices.hpp"
 #include "dlpack.hpp"
 
-namespace sx {
+namespace sx::Dlpack {
 
-Platform from_dlpack_platform(std::int32_t platform) {
-    switch (platform) {
-        case nanobind::device::cpu::value:
-            return Platform::Cpu;
-        case nanobind::device::metal::value:
-            return Platform::Metal;
-        default:
-            break;
+namespace {
+nanobind::ndarray<> get_array(nanobind::object data) {
+    const auto array = nanobind::cast<nanobind::ndarray<>>(data);
+    if (!array.is_valid()) {
+        throw std::runtime_error{"invalid ndarray"};
     }
-    throw std::invalid_argument{"invalid dlpack platform"};
+    return array;
+}
+} // namespace
+
+DevicePtr get_device(nanobind::object data) {
+    const nanobind::ndarray<> array{get_array(data)};
+    switch (array.device_type()) {
+        case nanobind::device::cpu::value:
+            return std::make_shared<sx::Cpu::Device>();
+        case nanobind::device::metal::value:
+            std::vector<DevicePtr> devices{sx::Metal::devices()};
+            auto it{std::find_if(devices.begin(), devices.end(), [array](const DevicePtr &device) {
+                return std::dynamic_pointer_cast<const sx::Metal::Device>(device)->id() == array.device_id();
+            })};
+            if (it == devices.end()) {
+                throw std::logic_error{"invalid metal device id"};
+            }
+            return *it;
+    }
+    throw std::invalid_argument{"invalid device type"};
 }
 
-Dtype from_dlpack_dtype(nanobind::dlpack::dtype dtype) {
+Dtype get_dtype(nanobind::object data) {
+    const nanobind::dlpack::dtype dtype{get_array(data).dtype()};
     if (dtype.lanes == 1) {
         switch (static_cast<nanobind::dlpack::dtype_code>(dtype.code)) {
             case nanobind::dlpack::dtype_code::Bool:
@@ -49,60 +75,53 @@ Dtype from_dlpack_dtype(nanobind::dlpack::dtype dtype) {
     throw std::invalid_argument{"invalid dlpack dtype"};
 }
 
-DlpackArray from_dlpack(nanobind::object data) {
-    const auto array = nanobind::cast<nanobind::ndarray<>>(data);
-    if (!array.is_valid()) {
-        throw std::runtime_error{"invalid ndarray"};
+std::vector<std::size_t> get_shape(nanobind::object data) {
+    const nanobind::ndarray<> array{get_array(data)};
+    std::vector<std::size_t> shape;
+    shape.reserve(array.ndim());
+    for (std::size_t i{0}; i < array.ndim(); ++i) {
+        shape.push_back(array.shape(i));
     }
-
-    DlpackArray view;
-
-    view.device.platform = from_dlpack_platform(array.device_type());
-    view.device.id = array.device_id();
-
-    view.dtype = from_dlpack_dtype(array.dtype());
-
-    const std::size_t ndim{array.ndim()};
-    view.shape.reserve(ndim);
-    view.strides.reserve(ndim);
-    for (std::size_t i{0}; i < ndim; ++i) {
-        view.shape.push_back(array.shape(i));
-        view.strides.push_back(array.stride(i));
-    }
-
-    const auto bytes = static_cast<std::byte *>(array.data());
-    switch (view.dtype) {
-        case Dtype::Bool:
-            view.data = read_buffer<bool>(bytes, view.dtype, view.shape, view.strides);
-            break;
-        case Dtype::Uint8:
-        case Dtype::Int32:
-            view.data = read_buffer<int32_t>(bytes, view.dtype, view.shape, view.strides);
-            break;
-        case Dtype::Float16:
-        case Dtype::Float32:
-        case Dtype::Bfloat16:
-            view.data = read_buffer<float>(bytes, view.dtype, view.shape, view.strides);
-            break;
-    }
-
-    return view;
+    return shape;
 }
 
-nanobind::dlpack::dtype_code to_dlpack_dtype_code(Dtype dtype) {
-    switch (dtype) {
-        case Dtype::Bool:
-            return nanobind::dlpack::dtype_code::Bool;
-        case Dtype::Uint8:
-            return nanobind::dlpack::dtype_code::UInt;
-        case Dtype::Int32:
-            return nanobind::dlpack::dtype_code::Int;
-        case Dtype::Float16:
-        case Dtype::Float32:
-            return nanobind::dlpack::dtype_code::Float;
-        case Dtype::Bfloat16:
-            return nanobind::dlpack::dtype_code::Bfloat;
+std::vector<std::ptrdiff_t> get_strides(nanobind::object data) {
+    const nanobind::ndarray<> array{get_array(data)};
+    std::vector<std::ptrdiff_t> strides;
+    strides.reserve(array.ndim());
+    for (std::size_t i{0}; i < array.ndim(); ++i) {
+        strides.push_back(array.stride(i));
     }
+    return strides;
 }
 
-} // namespace sx
+std::variant<std::vector<bool>, std::vector<std::int32_t>, std::vector<float>> get_data(nanobind::object data) {
+    const DevicePtr device{get_device(data)};
+    const Dtype dtype{get_dtype(data)};
+    const std::vector<std::size_t> shape{get_shape(data)};
+    const std::vector<std::ptrdiff_t> strides{get_strides(data)};
+
+    const auto bytes = static_cast<std::byte *>(get_array(data).data());
+    switch (device->platform()) {
+        case Platform::Cpu: {
+            switch (dtype) {
+                case Dtype::Bool:
+                    return read_buffer<bool>(bytes, dtype, shape, strides);
+                case Dtype::Uint8:
+                case Dtype::Int32:
+                    return read_buffer<int32_t>(bytes, dtype, shape, strides);
+                case Dtype::Float16:
+                case Dtype::Float32:
+                case Dtype::Bfloat16:
+                    return read_buffer<float>(bytes, dtype, shape, strides);
+            }
+        }
+
+        case Platform::Metal:
+            break; // ...
+    }
+
+    throw std::invalid_argument{"invalid platform"};
+}
+
+} // namespace sx::Dlpack

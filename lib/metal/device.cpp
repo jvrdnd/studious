@@ -6,7 +6,7 @@
 
 namespace sx::Metal {
 
-Device::Device(std::uint64_t id, MTL::Device *device) : id_{id}, device_{device} {
+Device::Device(std::int32_t id, MTL::Device *device) : id_{id}, device_{device} {
     if (device_ == nullptr) {
         throw std::invalid_argument{"invalid device"};
     }
@@ -14,9 +14,7 @@ Device::Device(std::uint64_t id, MTL::Device *device) : id_{id}, device_{device}
 }
 
 Device::~Device() noexcept {
-    if (device_ != nullptr) {
-        device_->release();
-    }
+    device_->release();
 }
 
 MTL::Buffer *Device::allocate(std::size_t nbytes) const {

@@ -26,4 +26,6 @@ protected:
     [[nodiscard]] virtual std::string repr_() const = 0;
 };
 
+using DevicePtr = std::shared_ptr<const Device>;
+
 } // namespace sx

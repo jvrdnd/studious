@@ -56,7 +56,7 @@ NB_MODULE(_lib, m) {
     nanobind::class_<Array<Cpu::Buffer>>{m, "CpuArray"}
         .def(
             "__dlpack__",
-            [](nanobind::object self, nanobind::handle) { return to_dlpack<Cpu::Buffer>(self); },
+            [](nanobind::object self, nanobind::handle) { return Dlpack::make<Cpu::Buffer>(self); },
             nanobind::kw_only(),
             nanobind::arg("stream") = nanobind::none()
         )
@@ -81,7 +81,7 @@ NB_MODULE(_lib, m) {
     nanobind::class_<Array<Metal::Buffer>>{m, "MetalArray"}
         .def(
             "__dlpack__",
-            [](nanobind::object self, nanobind::handle) { return to_dlpack<Metal::Buffer>(self); },
+            [](nanobind::object self, nanobind::handle) { return Dlpack::make<Metal::Buffer>(self); },
             nanobind::kw_only(),
             nanobind::arg("stream") = nanobind::none()
         )
@@ -100,16 +100,11 @@ NB_MODULE(_lib, m) {
         nanobind::arg("device")
     );
 
-    nanobind::class_<DlpackArray> dlpack_array{m, "DlpackArray"};
-    dlpack_array.def_ro("device", &DlpackArray::device)
-        .def_ro("dtype", &DlpackArray::dtype)
-        .def_ro("shape", &DlpackArray::shape)
-        .def_ro("strides", &DlpackArray::strides)
-        .def_ro("data", &DlpackArray::data);
-    nanobind::class_<DlpackArray::Device>{dlpack_array, "Device"}
-        .def_ro("platform", &DlpackArray::Device::platform)
-        .def_ro("id", &DlpackArray::Device::id);
-    m.def("from_dlpack", &from_dlpack);
+    m.def("dlpack_get_device", &sx::Dlpack::get_device);
+    m.def("dlpack_get_dtype", &sx::Dlpack::get_dtype);
+    m.def("dlpack_get_shape", &sx::Dlpack::get_shape);
+    m.def("dlpack_get_strides", &sx::Dlpack::get_strides);
+    m.def("dlpack_get_data", &sx::Dlpack::get_data);
 }
 
 } // namespace sx
