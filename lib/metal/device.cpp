@@ -16,12 +16,15 @@ Device::~Device() noexcept {
     device_->release();
 }
 
-MTL::Buffer *Device::allocate(std::size_t nbytes) const {
+MTL::Buffer *Device::allocate(std::size_t nbytes, StorageMode mode) const {
     if (nbytes == 0) {
         return nullptr;
     }
 
-    MTL::Buffer *buffer{device_->newBuffer(nbytes, MTL::ResourceStorageModeShared)};
+    MTL::Buffer *buffer{device_->newBuffer(
+        nbytes,
+        mode == StorageMode::Private ? MTL::ResourceStorageModePrivate : MTL::ResourceStorageModeShared
+    )};
     if (buffer == nullptr) {
         throw std::bad_alloc{};
     }

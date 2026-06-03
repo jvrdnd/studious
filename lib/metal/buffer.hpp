@@ -11,8 +11,8 @@ namespace sx::Metal {
 
 class Buffer final : public sx::Buffer<Device> {
 public:
-    explicit Buffer(std::shared_ptr<const Device> device, std::size_t size) :
-        sx::Buffer<Device>{device}, handle_{device->allocate(size)} {}
+    explicit Buffer(std::shared_ptr<const Device> device, std::size_t size, StorageMode mode = StorageMode::Shared) :
+        sx::Buffer<Device>{device}, handle_{device->allocate(size, mode)} {}
     ~Buffer() noexcept override {
         device()->deallocate(handle_);
     }
@@ -27,10 +27,5 @@ public:
 private:
     MTL::Buffer *const handle_;
 };
-
-[[nodiscard]] inline std::shared_ptr<const sx::Buffer<Device>>
-make_buffer(std::shared_ptr<const Device> device, std::size_t size) {
-    return std::make_shared<Buffer>(std::move(device), size);
-}
 
 } // namespace sx::Metal

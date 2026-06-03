@@ -103,7 +103,8 @@ std::variant<std::vector<bool>, std::vector<std::int32_t>, std::vector<float>> g
 
     const auto bytes = static_cast<std::byte *>(get_array(data).data());
     switch (device->platform()) {
-        case Platform::Cpu: {
+        case Platform::Cpu:
+        case Platform::Metal: {
             switch (dtype) {
                 case Dtype::Bool:
                     return read_buffer<bool>(bytes, dtype, shape, strides);
@@ -116,9 +117,6 @@ std::variant<std::vector<bool>, std::vector<std::int32_t>, std::vector<float>> g
                     return read_buffer<float>(bytes, dtype, shape, strides);
             }
         }
-
-        case Platform::Metal:
-            break; // ...
     }
 
     throw std::invalid_argument{"invalid platform"};

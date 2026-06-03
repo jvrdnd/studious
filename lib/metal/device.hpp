@@ -8,6 +8,8 @@
 
 namespace sx::Metal {
 
+enum class StorageMode { Shared, Private };
+
 class Device final : public sx::Device {
 public:
     explicit Device(std::int32_t id, MTL::Device *device);
@@ -17,7 +19,7 @@ public:
         return Platform::Metal;
     }
 
-    [[nodiscard]] MTL::Buffer *allocate(std::size_t nbytes) const;
+    [[nodiscard]] MTL::Buffer *allocate(std::size_t nbytes, StorageMode mode) const;
     void deallocate(MTL::Buffer *buffer) const noexcept;
 
 private:
