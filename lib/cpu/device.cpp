@@ -1,6 +1,5 @@
 #include <cstddef>
 #include <new>
-#include <string>
 
 #include "device.hpp"
 
