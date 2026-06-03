@@ -25,7 +25,7 @@
 namespace sx {
 
 NB_MODULE(_lib, m) {
-    nanobind::enum_<Dtype> dtype{m, "DType"};
+    nanobind::enum_<Dtype> dtype{m, "Dtype"};
     for (std::size_t i{0}; i < dtype_traits.size(); ++i) {
         std::string name{dtype_traits[i].name};
         std::ranges::transform(name, name.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
@@ -38,7 +38,12 @@ NB_MODULE(_lib, m) {
         .value("METAL", Platform::Metal)
         .export_values();
 
-    nanobind::class_<Device>{m, "Device"}.def_prop_ro("platform", &Device::platform).def("__repr__", &Device::repr);
+    nanobind::class_<Device>{m, "Device"}
+        .def_prop_ro("platform", &Device::platform)
+        .def_prop_ro("id", &Device::id)
+        .def("__repr__", [](const Device &self) {
+            return std::string(platform_name(self.platform())) + "(id=" + std::to_string(self.id()) + ")";
+        });
     nanobind::class_<Cpu::Device, Device> cpu_device{m, "CpuDevice"};
     nanobind::class_<Metal::Device, Device> metal_device{m, "MetalDevice"};
 

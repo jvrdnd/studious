@@ -6,7 +6,7 @@ from types import CapsuleType
 from .._lib import (
     CpuArray,
     Device,
-    DType,
+    Dtype,
     MetalArray,
     dlpack_get_data,
     dlpack_get_device,
@@ -37,7 +37,7 @@ class Array:
         return dlpack_get_device(self)
 
     @property
-    def dtype(self) -> DType:
+    def dtype(self) -> Dtype:
         return dlpack_get_dtype(self)
 
     @property

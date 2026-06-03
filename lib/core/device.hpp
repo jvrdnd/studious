@@ -17,13 +17,15 @@ public:
     Device &operator=(Device &&) = delete;
 
     [[nodiscard]] virtual Platform platform() const noexcept = 0;
-
-    [[nodiscard]] std::string repr() const;
+    [[nodiscard]] std::int32_t id() const noexcept {
+        return id_;
+    }
 
 protected:
-    explicit Device() = default;
+    explicit Device(std::int32_t id) noexcept : id_{id} {};
 
-    [[nodiscard]] virtual std::string repr_() const = 0;
+private:
+    const std::int32_t id_;
 };
 
 using DevicePtr = std::shared_ptr<const Device>;

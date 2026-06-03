@@ -16,18 +16,11 @@ public:
     [[nodiscard]] Platform platform() const noexcept override {
         return Platform::Metal;
     }
-    [[nodiscard]] std::int32_t id() const noexcept {
-        return id_;
-    }
 
     [[nodiscard]] MTL::Buffer *allocate(std::size_t nbytes) const;
     void deallocate(MTL::Buffer *buffer) const noexcept;
 
-protected:
-    [[nodiscard]] std::string repr_() const override;
-
 private:
-    const std::int32_t id_;
     MTL::Device *const device_;
 };
 

@@ -1,5 +1,3 @@
-#include <stdexcept>
-
 #include "platform.hpp"
 
 namespace sx {
@@ -11,7 +9,6 @@ std::string_view platform_name(Platform platform) {
         case Platform::Metal:
             return "metal";
     }
-    throw std::invalid_argument{"invalid platform"};
 }
 
 } // namespace sx

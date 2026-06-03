@@ -1,3 +1,3 @@
-from ._lib import DType, Platform, devices
+from ._lib import Dtype, Platform, devices
 
-__all__ = ["DType", "Platform", "devices"]
+__all__ = ["Dtype", "Platform", "devices"]

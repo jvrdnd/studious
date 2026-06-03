@@ -6,7 +6,7 @@
 
 namespace sx::Metal {
 
-Device::Device(std::int32_t id, MTL::Device *device) : id_{id}, device_{device} {
+Device::Device(std::int32_t id, MTL::Device *device) : sx::Device{id}, device_{device} {
     if (device_ == nullptr) {
         throw std::invalid_argument{"invalid device"};
     }
@@ -34,10 +34,6 @@ void Device::deallocate(MTL::Buffer *buffer) const noexcept {
     if (buffer != nullptr) {
         buffer->release();
     }
-}
-
-std::string Device::repr_() const {
-    return "id=" + std::to_string(id_);
 }
 
 } // namespace sx::Metal

@@ -9,7 +9,7 @@ namespace sx::Cpu {
 
 class Device final : public sx::Device {
 public:
-    explicit Device() = default;
+    explicit Device() : sx::Device{0} {};
 
     [[nodiscard]] Platform platform() const noexcept override {
         return Platform::Cpu;
@@ -17,9 +17,6 @@ public:
 
     [[nodiscard]] std::byte *allocate(std::size_t size) const;
     void deallocate(std::byte *ptr) const noexcept;
-
-protected:
-    [[nodiscard]] std::string repr_() const override;
 };
 
 } // namespace sx::Cpu

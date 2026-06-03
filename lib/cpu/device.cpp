@@ -20,8 +20,4 @@ void Device::deallocate(std::byte *ptr) const noexcept {
     ::operator delete(ptr, std::align_val_t{Alignment});
 }
 
-std::string Device::repr_() const {
-    return "";
-}
-
 } // namespace sx::Cpu
