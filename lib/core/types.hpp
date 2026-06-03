@@ -30,15 +30,27 @@ std::ostream &operator<<(std::ostream &os, Bfloat16 h);
 [[nodiscard]] std::uint16_t f32_to_bf16(float f) noexcept;
 [[nodiscard]] float bf16_to_f32(std::uint16_t h) noexcept;
 
-template <typename T> [[nodiscard]] T cast(auto x) {
-    if constexpr (std::same_as<T, Bool>) {
+template <typename O, typename I> [[nodiscard]] O static_cast_from_native(I x) {
+    if constexpr (std::same_as<O, Bool>) {
         return Bool{bool_to_u8(static_cast<bool>(x))};
-    } else if constexpr (std::same_as<T, Float16>) {
+    } else if constexpr (std::same_as<O, Float16>) {
         return Float16{f32_to_f16(static_cast<float>(x))};
-    } else if constexpr (std::same_as<T, Bfloat16>) {
+    } else if constexpr (std::same_as<O, Bfloat16>) {
         return Bfloat16{f32_to_bf16(static_cast<float>(x))};
     } else {
-        return static_cast<T>(x);
+        return static_cast<O>(x);
+    }
+}
+
+template <typename O, typename I> [[nodiscard]] O static_cast_to_native(I x) {
+    if constexpr (std::same_as<I, Bool>) {
+        return static_cast<O>(u8_to_bool(x.bits));
+    } else if constexpr (std::same_as<I, Float16>) {
+        return static_cast<O>(f16_to_f32(x.bits));
+    } else if constexpr (std::same_as<I, Bfloat16>) {
+        return static_cast<O>(bf16_to_f32(x.bits));
+    } else {
+        return static_cast<O>(x);
     }
 }
 

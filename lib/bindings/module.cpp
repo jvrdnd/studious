@@ -105,11 +105,11 @@ NB_MODULE(_lib, m) {
         nanobind::arg("device")
     );
 
-    m.def("dlpack_get_device", &sx::Dlpack::get_device);
-    m.def("dlpack_get_dtype", &sx::Dlpack::get_dtype);
-    m.def("dlpack_get_shape", &sx::Dlpack::get_shape);
-    m.def("dlpack_get_strides", &sx::Dlpack::get_strides);
-    m.def("dlpack_get_data", &sx::Dlpack::get_data);
+    m.def("dlpack_get_device", &Dlpack::get_device);
+    m.def("dlpack_get_dtype", &Dlpack::get_dtype);
+    m.def("dlpack_get_shape", &Dlpack::get_shape);
+    m.def("dlpack_get_strides", &Dlpack::get_strides);
+    m.def("dlpack_get_data", &Dlpack::get_data);
 }
 
 } // namespace sx

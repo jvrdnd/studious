@@ -38,7 +38,7 @@ template <BufferType B> nanobind::capsule make(nanobind::handle data) {
             break;
         case Platform::Metal:
             device.type = nanobind::device::metal::value;
-            device.id = std::dynamic_pointer_cast<const sx::Metal::Device>(array->buffer()->device())->id();
+            device.id = std::dynamic_pointer_cast<const Metal::Device>(array->buffer()->device())->id();
             break;
     }
 

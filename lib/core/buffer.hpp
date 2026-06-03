@@ -11,9 +11,7 @@
 
 namespace sx {
 
-template <typename D>
-    requires std::derived_from<D, Device>
-class Buffer {
+template <DeviceType D> class Buffer {
 public:
     using device_type = D;
 
@@ -38,6 +36,11 @@ private:
     const std::shared_ptr<const D> device_;
 };
 
+template <typename B>
+concept BufferType = requires {
+    typename B::device_type;
+} && std::derived_from<typename B::device_type, Device> && std::derived_from<B, Buffer<typename B::device_type>>;
+
 template <typename T> std::size_t memcpy(std::byte *ptr, nanobind::handle data) {
     std::size_t offset;
 
@@ -50,11 +53,11 @@ template <typename T> std::size_t memcpy(std::byte *ptr, nanobind::handle data) 
     } else {
         T scalar;
         if (nanobind::isinstance<nanobind::bool_>(data)) {
-            scalar = cast<T>(nanobind::cast<bool>(data));
+            scalar = static_cast_from_native<T>(nanobind::cast<bool>(data));
         } else if (nanobind::isinstance<nanobind::int_>(data)) {
-            scalar = cast<T>(nanobind::cast<std::int64_t>(data));
+            scalar = static_cast_from_native<T>(nanobind::cast<std::int64_t>(data));
         } else if (nanobind::isinstance<nanobind::float_>(data)) {
-            scalar = cast<T>(nanobind::cast<float>(data));
+            scalar = static_cast_from_native<T>(nanobind::cast<float>(data));
         }
 
         offset = sizeof(T);

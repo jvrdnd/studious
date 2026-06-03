@@ -5,12 +5,10 @@
 #include <span>
 #include <vector>
 
-#include "../core/dtype.hpp"
-
-namespace sx {
+namespace sx::Cpu {
 
 template <typename T, typename F>
-void process_buffer(const T *data, std::span<const std::size_t> shape, std::span<const std::ptrdiff_t> strides, F &&f) {
+void iterate(const T *data, std::span<const std::size_t> shape, std::span<const std::ptrdiff_t> strides, F &&f) {
     const std::size_t ndim{shape.size()};
 
     if (ndim == 0) {
@@ -48,26 +46,4 @@ void process_buffer(const T *data, std::span<const std::size_t> shape, std::span
     }
 }
 
-template <typename O, typename I> [[nodiscard]] O cast_buffer(I x) {
-    if constexpr (std::same_as<I, Bool>) {
-        return static_cast<O>(u8_to_bool(x.bits));
-    } else if constexpr (std::same_as<I, Float16>) {
-        return static_cast<O>(f16_to_f32(x.bits));
-    } else if constexpr (std::same_as<I, Bfloat16>) {
-        return static_cast<O>(bf16_to_f32(x.bits));
-    } else {
-        return static_cast<O>(x);
-    }
-}
-
-template <typename T>
-std::vector<T>
-read_buffer(std::byte *data, Dtype dtype, std::span<const std::size_t> shape, std::span<const std::ptrdiff_t> strides) {
-    std::vector<T> xs;
-    dispatch_dtype(dtype, [&]<typename U>() {
-        process_buffer(reinterpret_cast<U *>(data), shape, strides, [&](U x) { xs.push_back(cast_buffer<T>(x)); });
-    });
-    return xs;
-}
-
-} // namespace sx
+} // namespace sx::Cpu

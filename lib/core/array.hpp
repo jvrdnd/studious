@@ -13,11 +13,6 @@
 
 namespace sx {
 
-template <typename B>
-concept BufferType = requires {
-    typename B::device_type;
-} && std::derived_from<typename B::device_type, Device> && std::derived_from<B, Buffer<typename B::device_type>>;
-
 template <BufferType B> class Array {
 public:
     using buffer_type = B;
@@ -59,12 +54,9 @@ private:
 infer_nb_dtype(nanobind::handle data, const std::vector<std::size_t> &shape, std::size_t depth = 0);
 
 template <typename D, typename B>
-    requires(
-        requires { typename B::device_type; } &&
-        std::same_as<D, typename B::device_type> &&
-        std::derived_from<D, Device> &&
-        std::derived_from<B, sx::Buffer<D>>
-    )
+    requires(requires {
+        typename B::device_type;
+    } && std::same_as<D, typename B::device_type> && std::derived_from<D, Device> && std::derived_from<B, Buffer<D>>)
 [[nodiscard]] std::shared_ptr<Array<B>>
 make_array(nanobind::handle data, std::optional<Dtype> dtype, std::shared_ptr<const D> device) {
     const std::vector<std::size_t> shape = infer_nb_shape(data);

@@ -8,7 +8,7 @@
 #include "../core/device.hpp"
 #include "../core/platform.hpp"
 #include "../cpu/device.hpp"
-#include "../cpu/read.hpp"
+#include "../cpu/kernels/vectorize.hpp"
 #include "../metal/device.hpp"
 #include "../metal/devices.hpp"
 #include "dlpack.hpp"
@@ -29,11 +29,11 @@ DevicePtr get_device(nanobind::object data) {
     const nanobind::ndarray<> array{get_array(data)};
     switch (array.device_type()) {
         case nanobind::device::cpu::value:
-            return std::make_shared<sx::Cpu::Device>();
+            return std::make_shared<Cpu::Device>();
         case nanobind::device::metal::value:
-            std::vector<DevicePtr> devices{sx::Metal::devices()};
+            std::vector<DevicePtr> devices{Metal::devices()};
             auto it{std::find_if(devices.begin(), devices.end(), [array](const DevicePtr &device) {
-                return std::dynamic_pointer_cast<const sx::Metal::Device>(device)->id() == array.device_id();
+                return std::dynamic_pointer_cast<const Metal::Device>(device)->id() == array.device_id();
             })};
             if (it == devices.end()) {
                 throw std::logic_error{"invalid metal device id"};
@@ -104,17 +104,17 @@ std::variant<std::vector<bool>, std::vector<std::int32_t>, std::vector<float>> g
     const auto bytes = static_cast<std::byte *>(get_array(data).data());
     switch (device->platform()) {
         case Platform::Cpu:
-        case Platform::Metal: {
+        case Platform::Metal: { // metal buffer in shared mode behaves like cpu
             switch (dtype) {
                 case Dtype::Bool:
-                    return read_buffer<bool>(bytes, dtype, shape, strides);
+                    return Cpu::vectorize<bool>(bytes, dtype, shape, strides);
                 case Dtype::Uint8:
                 case Dtype::Int32:
-                    return read_buffer<int32_t>(bytes, dtype, shape, strides);
+                    return Cpu::vectorize<std::int32_t>(bytes, dtype, shape, strides);
                 case Dtype::Float16:
                 case Dtype::Float32:
                 case Dtype::Bfloat16:
-                    return read_buffer<float>(bytes, dtype, shape, strides);
+                    return Cpu::vectorize<float>(bytes, dtype, shape, strides);
             }
         }
     }

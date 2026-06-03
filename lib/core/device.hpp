@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 
 #include "platform.hpp"
@@ -26,6 +27,9 @@ protected:
 private:
     const std::int32_t id_;
 };
+
+template <typename D>
+concept DeviceType = std::derived_from<D, Device>;
 
 using DevicePtr = std::shared_ptr<const Device>;
 
