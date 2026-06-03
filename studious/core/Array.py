@@ -15,6 +15,33 @@ from .._lib import (
     dlpack_get_strides,
 )
 
+type Shaped = bool | int | float | list[Shaped]
+
+
+def reshape(array: Array) -> Shaped:
+    def build(offset: int, dims: list[int]) -> tuple[Shaped, int]:
+        if not dims:
+            return array.data[offset], offset + 1
+        size = dims[0]
+        result: Shaped = []
+        for _ in range(size):
+            item, offset = build(offset, dims[1:])
+            result.append(item)
+        return result, offset
+
+    out, _ = build(0, array.shape)
+    return out
+
+
+def format(x: Shaped, indent: int = 0) -> str:
+    if not isinstance(x, list) or not isinstance(x[0], list):
+        return repr(x)
+
+    inner_indent = indent + 2
+    pieces = [" " * inner_indent + format(item, inner_indent) for item in x]
+
+    return "[\n" + ",\n".join(pieces) + "\n" + " " * indent + "]"
+
 
 @dataclass(frozen=True)
 class Array:
@@ -27,10 +54,10 @@ class Array:
         return self._binding.__dlpack_device__()
 
     def __repr__(self) -> str:
-        return repr(self.data)
+        return format(reshape(self))
 
     def __str__(self) -> str:
-        return str(self.data)
+        return self.__repr__()
 
     @property
     def device(self) -> Device:
