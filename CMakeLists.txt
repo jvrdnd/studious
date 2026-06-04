@@ -7,8 +7,9 @@ find_package(Python 3.13 COMPONENTS Interpreter Development.Module REQUIRED)
 
 execute_process(
     COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
-    OUTPUT_VARIABLE nanobind_ROOT
+    OUTPUT_VARIABLE nanobind_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND_ERROR_IS_FATAL ANY
 )
 find_package(nanobind CONFIG REQUIRED)
 
@@ -22,6 +23,7 @@ if(APPLE)
     file(GLOB_RECURSE METAL_SOURCES CONFIGURE_DEPENDS lib/metal/*.cpp)
     list(REMOVE_ITEM METAL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/metal/devices_.cpp)
     list(APPEND STUDIOUS_SOURCES ${METAL_SOURCES})
+    file(GLOB_RECURSE METAL_KERNEL_SOURCES CONFIGURE_DEPENDS lib/metal/kernels/*.metal)
 else()
     list(APPEND STUDIOUS_SOURCES lib/metal/devices_.cpp)
 endif()
@@ -43,9 +45,40 @@ if(APPLE)
 
     add_library(metal_cpp_headers INTERFACE)
 
+    set(METALLIB_FILENAME "_kernels.metallib")
+    target_compile_definitions(metal_cpp_headers INTERFACE METALLIB_FILENAME="${METALLIB_FILENAME}")
+
     target_include_directories(metal_cpp_headers SYSTEM INTERFACE ${metal_cpp_SOURCE_DIR})
     target_link_libraries(metal_cpp_headers INTERFACE "-framework Foundation" "-framework Metal")
     target_link_libraries(_lib PRIVATE metal_cpp_headers)
+
+    set(METAL_AIR ${CMAKE_CURRENT_BINARY_DIR}/studious_kernels.air)
+    set(METAL_LIB ${CMAKE_SOURCE_DIR}/studious/${METALLIB_FILENAME})
+
+    add_custom_command(
+        OUTPUT ${METAL_AIR}
+        COMMAND xcrun -sdk macosx metal
+            -c ${METAL_KERNEL_SOURCES}
+            -o ${METAL_AIR}
+        DEPENDS ${METAL_KERNEL_SOURCES}
+        VERBATIM
+    )
+
+    add_custom_command(
+        OUTPUT ${METAL_LIB}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/studious
+        COMMAND xcrun -sdk macosx metallib
+            ${METAL_AIR}
+            -o ${METAL_LIB}
+        DEPENDS ${METAL_AIR}
+        VERBATIM
+    )
+
+    add_custom_target(studious_metallib ALL
+        DEPENDS ${METAL_LIB}
+    )
+
+    add_dependencies(_lib studious_metallib)
 endif()
 
 set_target_properties(_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/studious)

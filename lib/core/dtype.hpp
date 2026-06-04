@@ -23,9 +23,13 @@ inline constexpr std::array<dtype_trait, 6> dtype_traits = {
     dtype_trait{"bf16", 2},
 };
 
+[[nodiscard]] constexpr std::string_view dtype_name(Dtype dtype) noexcept {
+    return dtype_traits[static_cast<std::size_t>(dtype)].name;
+}
 [[nodiscard]] constexpr std::size_t dtype_size(Dtype dtype) noexcept {
     return dtype_traits[static_cast<std::size_t>(dtype)].size;
 }
+
 static_assert(sizeof(Bool) == dtype_size(Dtype::Bool));
 static_assert(sizeof(std::uint8_t) == dtype_size(Dtype::Uint8));
 static_assert(sizeof(std::int32_t) == dtype_size(Dtype::Int32));

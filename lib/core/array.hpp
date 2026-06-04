@@ -24,6 +24,16 @@ public:
         std::shared_ptr<const B> buffer
     ) :
         dtype_{dtype}, shape_{std::move(shape)}, strides_{std::move(strides)}, buffer_{std::move(buffer)} {}
+    Array(
+        Dtype dtype,
+        std::span<const std::size_t> shape,
+        std::span<const std::int64_t> strides,
+        std::shared_ptr<const B> buffer
+    ) :
+        dtype_{dtype},
+        shape_{shape.begin(), shape.end()},
+        strides_{strides.begin(), strides.end()},
+        buffer_{std::move(buffer)} {}
     virtual ~Array() noexcept = default;
 
     [[nodiscard]] Dtype dtype() const noexcept {

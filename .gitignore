@@ -12,6 +12,7 @@ __pycache__/
 .cache
 build/
 *.dSYM/
+*.metallib
 
 # extension output
 studious/*.so

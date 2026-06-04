@@ -24,6 +24,10 @@ public:
         return handle_->length();
     }
 
+    [[nodiscard]] MTL::Buffer *handle() const noexcept {
+        return handle_;
+    }
+
 private:
     MTL::Buffer *const handle_;
 };

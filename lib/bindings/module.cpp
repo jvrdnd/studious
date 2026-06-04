@@ -20,6 +20,7 @@
 #include "../cpu/device.hpp"
 #include "../metal/buffer.hpp"
 #include "../metal/device.hpp"
+#include "../metal/kernels/add_scalar.hpp"
 #include "dlpack.hpp"
 
 namespace sx {
