@@ -13,35 +13,18 @@
 namespace sx::Metal {
 
 namespace {
-inline NS::SharedPtr<NS::String> instance_name(std::string_view template_name, Dtype dtype) {
-    std::string instance_name{std::string(template_name) + "__" + std::string(dtype_name(dtype))};
-    return NS::TransferPtr(NS::String::alloc()->init(instance_name.c_str(), NS::UTF8StringEncoding));
+inline std::string instance_name(std::string_view template_name, Dtype dtype) {
+    return std::string(template_name) + "__" + std::string(dtype_name(dtype));
 }
 } // namespace
 
 template <typename T> inline Array<Buffer> add_scalar(Array<Buffer> &in, T scalar) {
-    Dtype dtype{in.dtype()};
-    NS::SharedPtr<NS::String> name{instance_name("add_scalar", dtype)};
+    const Dtype dtype{in.dtype()};
 
-    std::shared_ptr<const sx::Metal::Device> device{in.buffer()->device()};
-    NS::SharedPtr<MTL::Function> f{NS::TransferPtr(device->library()->newFunction(name.get()))};
-    if (!f) {
-        throw std::runtime_error(std::string("metal function not found: ") + name->utf8String());
-    }
-
-    NS::Error *error = nullptr;
-    NS::SharedPtr<MTL::ComputePipelineState> pipeline{
-        NS::TransferPtr(device->handle()->newComputePipelineState(f.get(), &error))
+    const std::shared_ptr<const sx::Metal::Device> device{in.buffer()->device()};
+    const NS::SharedPtr<MTL::ComputePipelineState> pipeline{
+        NS::TransferPtr(device->kernel(instance_name("add_scalar", dtype)))
     };
-
-    if (!pipeline) {
-        std::string msg = "could not create compute pipeline";
-        if (error != nullptr) {
-            msg += ": ";
-            msg += error->localizedDescription()->utf8String();
-        }
-        throw std::runtime_error{msg};
-    }
 
     MTL::CommandBuffer *command_buffer = device->queue()->commandBuffer();
     MTL::ComputeCommandEncoder *command_encoder = command_buffer->computeCommandEncoder();

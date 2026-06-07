@@ -111,6 +111,8 @@ NB_MODULE(_lib, m) {
     m.def("dlpack_get_shape", &Dlpack::get_shape);
     m.def("dlpack_get_strides", &Dlpack::get_strides);
     m.def("dlpack_get_data", &Dlpack::get_data);
+
+    m.def("add_scalar", &Metal::add_scalar<float>);
 }
 
 } // namespace sx

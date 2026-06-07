@@ -70,4 +70,36 @@ void Device::deallocate(MTL::Buffer *buffer) const noexcept {
     }
 }
 
+MTL::ComputePipelineState *Device::kernel(std::string name) const {
+    // lock before read and through write
+    std::lock_guard<std::mutex> lock{kernels_mutex_};
+
+    const auto it{kernels_.find(name)};
+    if (it != kernels_.end()) {
+        return it->second.get();
+    }
+
+    NS::SharedPtr<NS::String> fname{NS::TransferPtr(NS::String::alloc()->init(name.c_str(), NS::UTF8StringEncoding))};
+    NS::SharedPtr<MTL::Function> f{NS::TransferPtr(library_->newFunction(fname.get()))};
+    if (!f) {
+        throw std::runtime_error(std::string("metal function not found: ") + name);
+    }
+
+    NS::Error *error = nullptr;
+    NS::SharedPtr<MTL::ComputePipelineState> kernel{NS::TransferPtr(handle_->newComputePipelineState(f.get(), &error))};
+
+    if (!kernel) {
+        std::string msg = "unable to create compute pipeline state";
+        if (error != nullptr) {
+            msg += ": ";
+            msg += error->localizedDescription()->utf8String();
+        }
+        throw std::runtime_error{msg};
+    }
+
+    kernels_.insert({std::move(name), kernel}); // pipeline is copied so the original can be returned
+
+    return kernel.get();
+}
+
 } // namespace sx::Metal
