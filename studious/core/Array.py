@@ -34,7 +34,7 @@ def reshape(array: Array) -> Shaped:
 
 
 def format(x: Shaped, indent: int = 0) -> str:
-    if not isinstance(x, list) or not isinstance(x[0], list):
+    if not x or not isinstance(x, list) or not isinstance(x[0], list):
         return repr(x)
 
     inner_indent = indent + 2

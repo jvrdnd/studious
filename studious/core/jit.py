@@ -1,10 +1,21 @@
 from __future__ import annotations
 
-from functools import wraps
+from collections.abc import Callable, Hashable
+from functools import lru_cache, wraps
 
 from .array import Array
-from .base import Executable, Param, Placeholder, Traceable, Tracer, TracerInstruction
-from .trace import JitTrace, TraceScope
+from .base import (
+    Executable,
+    ExecuteRule,
+    Input,
+    Param,
+    Placeholder,
+    PrimitiveLike,
+    Traceable,
+    Tracer,
+    TracerInstruction,
+)
+from .trace import JitTrace, TraceScope, trace_context
 
 
 def compile(instructions: list[TracerInstruction], tracers: tuple[Tracer, ...]) -> Executable:
@@ -23,3 +34,26 @@ def jit(function: Traceable) -> Executable:
         return compile(trace.instructions, out_tracers)(*inputs)
 
     return wrapper
+
+
+def cache(max_size: int = 4096) -> Callable[[ExecuteRule], ExecuteRule]:
+    def wrap(function: ExecuteRule) -> ExecuteRule:
+        @lru_cache(maxsize=max_size)
+        def cached(_: Hashable, primitive: PrimitiveLike, **params: Param) -> Executable:
+            return function(primitive, **params)
+
+        @wraps(function)
+        def wrapper(primitive: PrimitiveLike, **params: Param) -> Executable:
+            return cached(trace_context().key, primitive, **params)
+
+        return wrapper
+
+    return wrap
+
+
+@cache()
+def execute_rule(primitive: PrimitiveLike, **params: Param) -> Executable:
+    def function(*inputs: Input) -> tuple[Input, ...]:
+        return primitive.bind(*inputs, **params)
+
+    return jit(function)  # type: ignore : input is tracer + params in closure
