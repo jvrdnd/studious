@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from Array import Array
-
 from .._lib import Dtype
+from .array import Array
 from .trace import Trace
 
 type TScalar = bool | int | float

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from .._lib import Array
+from .array import Array
 from .input import Input, Param, Placeholder, Tracer
 from .jit import Executable, jit
 from .trace import trace_context

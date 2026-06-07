@@ -4,8 +4,7 @@ from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from types import TracebackType
 
-from Array import Array
-
+from .array import Array
 from .input import Input, Param, Tracer, get_placeholder
 from .primitive import Primitive
 
