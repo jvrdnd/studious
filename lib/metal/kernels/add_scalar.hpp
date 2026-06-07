@@ -1,7 +1,6 @@
 #include <Metal/Metal.hpp>
 #include <cstddef>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 

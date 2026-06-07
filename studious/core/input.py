@@ -1,22 +1,24 @@
 from dataclasses import dataclass
 
-from .._lib import Array, DType
+from Array import Array
+
+from .._lib import Dtype
 from .trace import Trace
 
 type TScalar = bool | int | float
 
 # map python types to device types
-DTYPES: dict[type[TScalar], DType] = {
-    bool: DType.BOOL,
-    int: DType.INT32,
-    float: DType.FLOAT32,
+DTYPES: dict[type[TScalar], Dtype] = {
+    bool: Dtype.PRED,
+    int: Dtype.S32,
+    float: Dtype.F32,
 }
 
 
 # traverses the graph when using a tracer
 @dataclass(frozen=True)
 class Placeholder:
-    dtype: DType
+    dtype: Dtype
     shape: tuple[int, ...]
 
 

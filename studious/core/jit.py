@@ -3,7 +3,8 @@ from __future__ import annotations
 from functools import wraps
 from typing import Protocol
 
-from .._lib import Array
+from Array import Array
+
 from .input import Input, Param, Tracer, get_placeholder
 from .trace import JitTrace, Op, TraceScope
 
