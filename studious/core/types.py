@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from .._lib import Dtype
 from .array import Array
@@ -13,29 +13,30 @@ class Placeholder:
     shape: tuple[int, ...]
 
 
-class TraceLike(Protocol):
-    level: int
-    is_valid: bool
-
-
-@dataclass(frozen=True)
-class Tracer:
-    placeholder: Placeholder
-    trace: TraceLike
-
-
-type Input = Array | Tracer
-
-
-type Param = str | tuple[Param, ...] | None
-
-
 class PrimitiveLike(Protocol):
     name: str
 
     def execute(self, *inputs: Array, **params: Param) -> tuple[Array, ...]: ...
     def trace(self, *inputs: Placeholder, **params: Param) -> tuple[Placeholder, ...]: ...
     def bind(self, *inputs: Input, **params: Param) -> tuple[Input, ...]: ...
+
+
+class TraceLike(Protocol):
+    level: int
+    is_valid: bool
+
+
+@runtime_checkable
+class Tracer(Protocol):
+    @property
+    def trace(self) -> TraceLike: ...
+
+    @property
+    def placeholder(self) -> Placeholder: ...
+
+
+type Input = Array | Tracer
+type Param = bool | int | float | str | Dtype | tuple[Param, ...] | None
 
 
 class Traceable(Protocol):
@@ -60,8 +61,3 @@ class Instruction:
 @dataclass(frozen=True)
 class ArrayInstruction(Instruction):
     inputs: tuple[Array, ...]
-
-
-@dataclass(frozen=True)
-class TracerInstruction(Instruction):
-    inputs: tuple[Tracer, ...]

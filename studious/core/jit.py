@@ -1,24 +1,61 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Hashable
+from dataclasses import dataclass, field
 from functools import lru_cache, wraps
 
 from .array import Array
-from .base import (
+from .trace import Trace, TraceScope, trace_context
+from .types import (
     Executable,
     ExecuteRule,
     Input,
+    Instruction,
     Param,
     Placeholder,
     PrimitiveLike,
     Traceable,
     Tracer,
-    TracerInstruction,
 )
-from .trace import JitTrace, TraceScope, trace_context
 
 
-def compile(instructions: list[TracerInstruction], tracers: tuple[Tracer, ...]) -> Executable:
+@dataclass
+class JitTrace(Trace):
+    instructions: list[JitTracerInstruction] = field(default_factory=lambda: [])
+
+    def array_to_level(self, array: Array) -> JitTracer:
+        return JitTracer(self, Placeholder(array.dtype, array.shape))
+
+    def tracer_to_level(self, tracer: Tracer) -> JitTracer:
+        return JitTracer(self, tracer.placeholder)
+
+    def process(self, instruction: JitTracerInstruction) -> tuple[Tracer, ...]:  # type: ignore
+        self.instructions.append(instruction)
+        in_placeholders = [input.placeholder for input in instruction.inputs]
+        out_placeholders = instruction.primitive.trace(*in_placeholders, **instruction.params)
+        return tuple(JitTracer(self, placeholder) for placeholder in out_placeholders)
+
+
+@dataclass
+class JitTracer(Tracer):
+    _trace: JitTrace
+    _placeholder: Placeholder
+
+    @property
+    def trace(self) -> JitTrace:
+        return self._trace
+
+    @property
+    def placeholder(self) -> Placeholder:
+        return self._placeholder
+
+
+@dataclass(frozen=True)
+class JitTracerInstruction(Instruction):
+    inputs: tuple[JitTracer, ...]
+
+
+def compile(instructions: list[JitTracerInstruction], tracers: tuple[Tracer, ...]) -> Executable:
     raise NotImplementedError
 
 
@@ -28,7 +65,7 @@ def jit(function: Traceable) -> Executable:
         # push the jit trace
         with TraceScope(JitTrace) as trace:
             # gather ops
-            in_tracers = [Tracer(Placeholder(input.dtype, input.shape), trace) for input in inputs]
+            in_tracers = tuple(JitTracer(trace, Placeholder(input.dtype, input.shape)) for input in inputs)
             out_tracers = function(*in_tracers, **params)
 
         return compile(trace.instructions, out_tracers)(*inputs)

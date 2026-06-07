@@ -1,18 +1,42 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from types import TracebackType
 
 from .array import Array
-from .base import ArrayInstruction, Input, Instruction, TraceLike, Tracer, TracerInstruction
+from .types import ArrayInstruction, Input, Instruction, TraceLike, Tracer
 
 
 @dataclass
-class Trace(TraceLike):
+class Trace(TraceLike, ABC):
     level: int
     is_valid: bool = True
 
+    def array_to_level(self, array: Array) -> Tracer:
+        raise NotImplementedError
+
+    def tracer_to_level(self, tracer: Tracer) -> Tracer:
+        raise NotImplementedError
+
+    def to_level(self, input: Input) -> Tracer:
+        if isinstance(input, Array):
+            return self.array_to_level(input)
+
+        if not input.trace.is_valid:
+            # catch leaked tracers
+            raise RuntimeError(f"detected escaped tracer: {input}")
+
+        if input.trace is self:
+            return input
+
+        if input.trace.level >= self.level:
+            raise RuntimeError("tracer must be from a lower level")
+
+        return self.tracer_to_level(input)
+
+    @abstractmethod
     def process(self, instruction: Instruction) -> tuple[Input, ...]:
         raise NotImplementedError
 
@@ -21,17 +45,6 @@ class Trace(TraceLike):
 class EvalTrace(Trace):
     def process(self, instruction: ArrayInstruction) -> tuple[Array, ...]:  # type: ignore
         return instruction.primitive.execute(*instruction.inputs, **instruction.params)
-
-
-@dataclass
-class JitTrace(Trace):
-    instructions: list[TracerInstruction] = field(default_factory=lambda: [])
-
-    def process(self, instruction: TracerInstruction) -> tuple[Tracer, ...]:  # type: ignore
-        self.instructions.append(instruction)
-        in_placeholders = [input.placeholder for input in instruction.inputs]
-        out_placeholders = instruction.primitive.trace(*in_placeholders, **instruction.params)
-        return tuple(Tracer(placeholder, self) for placeholder in out_placeholders)
 
 
 @dataclass(frozen=True)

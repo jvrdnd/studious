@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .array import Array
-from .base import Input, Instruction, Param, Placeholder, PrimitiveLike, Tracer
 from .jit import execute_rule
-from .trace import trace_context
+from .trace import EvalTrace, trace_context
+from .types import Input, Instruction, Param, Placeholder, PrimitiveLike
 
 
 @dataclass
@@ -22,9 +22,12 @@ class Primitive(PrimitiveLike):
         raise NotImplementedError(f"no trace implementation for '{self.name}'")
 
     def bind(self, *inputs: Input, **params: Param) -> tuple[Input, ...]:
-        # catch leaked tracers
-        for input in inputs:
-            if isinstance(input, Tracer) and not input.trace.is_valid:
-                raise RuntimeError(f"detected escaped tracer: {input}")
+        trace = trace_context().trace
 
-        return trace_context().trace.process(Instruction(self, inputs, params))
+        return trace.process(
+            Instruction(
+                self,
+                inputs if isinstance(trace, EvalTrace) else tuple(trace.to_level(input) for input in inputs),
+                params,
+            )
+        )
