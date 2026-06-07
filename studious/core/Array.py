@@ -19,7 +19,7 @@ type Shaped = bool | int | float | list[Shaped]
 
 
 def reshape(array: Array) -> Shaped:
-    def build(offset: int, dims: list[int]) -> tuple[Shaped, int]:
+    def build(offset: int, dims: tuple[int, ...]) -> tuple[Shaped, int]:
         if not dims:
             return array.data[offset], offset + 1
         size = dims[0]
@@ -68,12 +68,12 @@ class Array:
         return dlpack_get_dtype(self)
 
     @property
-    def shape(self) -> list[int]:
-        return dlpack_get_shape(self)
+    def shape(self) -> tuple[int, ...]:
+        return tuple(dlpack_get_shape(self))
 
     @property
-    def strides(self) -> list[int]:
-        return dlpack_get_strides(self)
+    def strides(self) -> tuple[int, ...]:
+        return tuple(dlpack_get_strides(self))
 
     @property
     def data(self) -> list[bool] | list[int] | list[float]:

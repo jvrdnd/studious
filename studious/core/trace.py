@@ -5,37 +5,32 @@ from dataclasses import dataclass, field
 from types import TracebackType
 
 from .array import Array
-from .input import Input, Param, Tracer, get_placeholder
-from .primitive import Primitive
-
-type OpInputs = tuple[Input, ...]
-type OpParams = dict[str, Param]
-type Op = tuple[Primitive, OpInputs, OpParams]
+from .base import ArrayInstruction, Input, Instruction, TraceLike, Tracer, TracerInstruction
 
 
 @dataclass
-class Trace:
+class Trace(TraceLike):
     level: int
     is_valid: bool = True
 
-    def process(self, primitive: Primitive, inputs: OpInputs, params: OpParams) -> tuple[Input, ...]:
+    def process(self, instruction: Instruction) -> tuple[Input, ...]:
         raise NotImplementedError
 
 
 @dataclass
 class EvalTrace(Trace):
-    def process(self, primitive: Primitive, inputs: OpInputs, params: OpParams) -> tuple[Array, ...]:
-        return primitive.execute(*inputs, **params)  # type: ignore : called with tuple[Array, ...] inputs
+    def process(self, instruction: ArrayInstruction) -> tuple[Array, ...]:  # type: ignore
+        return instruction.primitive.execute(*instruction.inputs, **instruction.params)
 
 
 @dataclass
 class JitTrace(Trace):
-    ops: list[Op] = field(default_factory=lambda: [])
+    instructions: list[TracerInstruction] = field(default_factory=lambda: [])
 
-    def process(self, primitive: Primitive, inputs: OpInputs, params: OpParams) -> tuple[Tracer, ...]:
-        self.ops.append((primitive, inputs, params))
-        in_placeholders = [get_placeholder(input) for input in inputs]
-        out_placeholders = primitive.trace(*in_placeholders, **params)
+    def process(self, instruction: TracerInstruction) -> tuple[Tracer, ...]:  # type: ignore
+        self.instructions.append(instruction)
+        in_placeholders = [input.placeholder for input in instruction.inputs]
+        out_placeholders = instruction.primitive.trace(*in_placeholders, **instruction.params)
         return tuple(Tracer(placeholder, self) for placeholder in out_placeholders)
 
 

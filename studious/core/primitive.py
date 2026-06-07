@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Hashable
 from dataclasses import dataclass
-from typing import Protocol
+from functools import lru_cache, wraps
 
 from .array import Array
-from .input import Input, Param, Placeholder, Tracer
-from .jit import Executable, jit
+from .base import Executable, ExecuteRule, Input, Instruction, Param, Placeholder, PrimitiveLike, Tracer
+from .jit import jit
 from .trace import trace_context
-from .util import cache
 
 
 @dataclass
-class Primitive:
+class Primitive(PrimitiveLike):
     name: str
 
     def __hash__(self) -> int:
@@ -29,15 +29,26 @@ class Primitive:
             if isinstance(input, Tracer) and not input.trace.is_valid:
                 raise RuntimeError(f"detected escaped tracer: {input}")
 
-        return trace_context().trace.process(self, inputs, params)
+        return trace_context().trace.process(Instruction(self, inputs, params))
 
 
-class ExecuteRule(Protocol):
-    def __call__(self, primitive: Primitive, **params: Param) -> Executable: ...
+def cache(max_size: int = 4096) -> Callable[[ExecuteRule], ExecuteRule]:
+    def wrap(function: ExecuteRule) -> ExecuteRule:
+        @lru_cache(maxsize=max_size)
+        def cached(_: Hashable, primitive: PrimitiveLike, **params: Param) -> Executable:
+            return function(primitive, **params)
+
+        @wraps(function)
+        def wrapper(primitive: PrimitiveLike, **params: Param) -> Executable:
+            return cached(trace_context().key, primitive, **params)
+
+        return wrapper
+
+    return wrap
 
 
 @cache()
-def execute_rule(primitive: Primitive, **params: Param) -> Executable:
+def execute_rule(primitive: PrimitiveLike, **params: Param) -> Executable:
     def function(*inputs: Input) -> tuple[Input, ...]:
         return primitive.bind(*inputs, **params)
 
