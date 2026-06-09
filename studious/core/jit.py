@@ -5,83 +5,85 @@ from dataclasses import dataclass, field
 from functools import lru_cache, wraps
 
 from .array import Array
-from .trace import Trace, TraceScope, trace_context
+from .interpreter import Interpreter, interpreter_context, interpreter_scope
 from .types import (
-    Executable,
-    ExecuteRule,
+    AbstractValue,
+    EvalRule,
+    Evaluatable,
     Input,
     Instruction,
+    Interpretable,
     Param,
     Placeholder,
     PrimitiveLike,
-    Traceable,
-    Tracer,
 )
 
 
 @dataclass
-class JitTrace(Trace):
-    instructions: list[JitTracerInstruction] = field(default_factory=lambda: [])
+class JitInterpreter(Interpreter):
+    instructions: list[JitPlaceholderInstruction] = field(default_factory=lambda: [])
 
-    def array_to_level(self, array: Array) -> JitTracer:
-        return JitTracer(self, Placeholder(array.dtype, array.shape))
+    def array_to_level(self, array: Array) -> JitPlaceholder:
+        return JitPlaceholder(self, AbstractValue(array.dtype, array.shape))
 
-    def tracer_to_level(self, tracer: Tracer) -> JitTracer:
-        return JitTracer(self, tracer.placeholder)
+    def placeholder_to_level(self, placeholder: Placeholder) -> JitPlaceholder:
+        return JitPlaceholder(self, placeholder.abstract_value)
 
-    def process(self, instruction: JitTracerInstruction) -> tuple[Tracer, ...]:  # type: ignore
+    def process(self, instruction: JitPlaceholderInstruction) -> tuple[Placeholder, ...]:  # type: ignore
         self.instructions.append(instruction)
-        in_placeholders = [input.placeholder for input in instruction.inputs]
-        out_placeholders = instruction.primitive.trace(*in_placeholders, **instruction.params)
-        return tuple(JitTracer(self, placeholder) for placeholder in out_placeholders)
+        in_placeholders = [input.abstract_value for input in instruction.inputs]
+        out_placeholders = instruction.primitive.interpret(*in_placeholders, **instruction.params)
+        return tuple(JitPlaceholder(self, placeholder) for placeholder in out_placeholders)
 
 
 @dataclass
-class JitTracer(Tracer):
-    _trace: JitTrace
-    _placeholder: Placeholder
+class JitPlaceholder(Placeholder):
+    _interpreter: JitInterpreter
+    _placeholder: AbstractValue
 
     @property
-    def trace(self) -> JitTrace:
-        return self._trace
+    def interpreter(self) -> JitInterpreter:
+        return self._interpreter
 
     @property
-    def placeholder(self) -> Placeholder:
+    def abstract_value(self) -> AbstractValue:
         return self._placeholder
 
 
 @dataclass(frozen=True)
-class JitTracerInstruction(Instruction):
-    inputs: tuple[JitTracer, ...]
+class JitPlaceholderInstruction(Instruction):
+    inputs: tuple[JitPlaceholder, ...]
 
 
-def compile(instructions: list[JitTracerInstruction], tracers: tuple[Tracer, ...]) -> Executable:
+def compile(instructions: list[JitPlaceholderInstruction], placeholders: tuple[Placeholder, ...]) -> Evaluatable:
     raise NotImplementedError
 
 
-def jit(function: Traceable) -> Executable:
+def jit(function: Interpretable) -> Evaluatable:
     @wraps(function)
     def wrapper(*inputs: Array, **params: Param) -> tuple[Array, ...]:
-        # push the jit trace
-        with TraceScope(JitTrace) as trace:
+        # push the jit interpreter
+        with interpreter_scope(JitInterpreter) as interpreter:
             # gather ops
-            in_tracers = tuple(JitTracer(trace, Placeholder(input.dtype, input.shape)) for input in inputs)
-            out_tracers = function(*in_tracers, **params)
+            in_placedholders = tuple(
+                JitPlaceholder(interpreter, AbstractValue(input.dtype, input.shape)) for input in inputs
+            )
+            out_placeholders = function(*in_placedholders, **params)
 
-        return compile(trace.instructions, out_tracers)(*inputs)
+        return compile(interpreter.instructions, out_placeholders)(*inputs)
 
     return wrapper
 
 
-def cache(max_size: int = 4096) -> Callable[[ExecuteRule], ExecuteRule]:
-    def wrap(function: ExecuteRule) -> ExecuteRule:
+def cache(max_size: int = 4096) -> Callable[[EvalRule], EvalRule]:
+    def wrap(function: EvalRule) -> EvalRule:
         @lru_cache(maxsize=max_size)
-        def cached(_: Hashable, primitive: PrimitiveLike, **params: Param) -> Executable:
+        def cached(_: Hashable, primitive: PrimitiveLike, **params: Param) -> Evaluatable:
             return function(primitive, **params)
 
         @wraps(function)
-        def wrapper(primitive: PrimitiveLike, **params: Param) -> Executable:
-            return cached(trace_context().key, primitive, **params)
+        def wrapper(primitive: PrimitiveLike, **params: Param) -> Evaluatable:
+            return cached(interpreter_context().key, primitive, **params)
 
         return wrapper
 
@@ -89,8 +91,8 @@ def cache(max_size: int = 4096) -> Callable[[ExecuteRule], ExecuteRule]:
 
 
 @cache()
-def execute_rule(primitive: PrimitiveLike, **params: Param) -> Executable:
+def execute_rule(primitive: PrimitiveLike, **params: Param) -> Evaluatable:
     def function(*inputs: Input) -> tuple[Input, ...]:
         return primitive.bind(*inputs, **params)
 
-    return jit(function)  # type: ignore : input is tracer + params in closure
+    return jit(function)  # type: ignore : input is placeholder + params in closure

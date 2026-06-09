@@ -7,48 +7,48 @@ from .._lib import Dtype
 from .array import Array
 
 
+class InterpreterLike(Protocol):
+    level: int
+    is_valid: bool
+
+
 @dataclass(frozen=True)
-class Placeholder:
+class AbstractValue:
     dtype: Dtype
     shape: tuple[int, ...]
+
+
+@runtime_checkable
+class Placeholder(Protocol):
+    @property
+    def interpreter(self) -> InterpreterLike: ...
+
+    @property
+    def abstract_value(self) -> AbstractValue: ...
+
+
+type Input = Array | Placeholder
+type Param = bool | int | float | str | Dtype | tuple[Param, ...] | None
+
+
+class Evaluatable(Protocol):
+    def __call__(self, *inputs: Array) -> tuple[Array, ...]: ...
+
+
+class Interpretable(Protocol):
+    def __call__(self, *inputs: Placeholder, **params: Param) -> tuple[Placeholder, ...]: ...
 
 
 class PrimitiveLike(Protocol):
     name: str
 
-    def execute(self, *inputs: Array, **params: Param) -> tuple[Array, ...]: ...
-    def trace(self, *inputs: Placeholder, **params: Param) -> tuple[Placeholder, ...]: ...
+    def evaluate(self, *inputs: Array, **params: Param) -> tuple[Array, ...]: ...
+    def interpret(self, *inputs: AbstractValue, **params: Param) -> tuple[AbstractValue, ...]: ...
     def bind(self, *inputs: Input, **params: Param) -> tuple[Input, ...]: ...
 
 
-class TraceLike(Protocol):
-    level: int
-    is_valid: bool
-
-
-@runtime_checkable
-class Tracer(Protocol):
-    @property
-    def trace(self) -> TraceLike: ...
-
-    @property
-    def placeholder(self) -> Placeholder: ...
-
-
-type Input = Array | Tracer
-type Param = bool | int | float | str | Dtype | tuple[Param, ...] | None
-
-
-class Traceable(Protocol):
-    def __call__(self, *inputs: Tracer, **params: Param) -> tuple[Tracer, ...]: ...
-
-
-class Executable(Protocol):
-    def __call__(self, *inputs: Array) -> tuple[Array, ...]: ...
-
-
-class ExecuteRule(Protocol):
-    def __call__(self, primitive: PrimitiveLike, **params: Param) -> Executable: ...
+class EvalRule(Protocol):
+    def __call__(self, primitive: PrimitiveLike, **params: Param) -> Evaluatable: ...
 
 
 @dataclass(frozen=True)
@@ -59,5 +59,5 @@ class Instruction:
 
 
 @dataclass(frozen=True)
-class ArrayInstruction(Instruction):
+class EvalInstruction(Instruction):
     inputs: tuple[Array, ...]

@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .array import Array
+from .interpreter import EvalInterpreter, interpreter_context
 from .jit import execute_rule
-from .trace import EvalTrace, trace_context
-from .types import Input, Instruction, Param, Placeholder, PrimitiveLike
+from .types import AbstractValue, Input, Instruction, Param, PrimitiveLike
 
 
 @dataclass
@@ -15,19 +15,21 @@ class Primitive(PrimitiveLike):
     def __hash__(self) -> int:
         return hash(self.name)
 
-    def execute(self, *inputs: Array, **params: Param) -> tuple[Array, ...]:
+    def evaluate(self, *inputs: Array, **params: Param) -> tuple[Array, ...]:
         return execute_rule(self, **params)(*inputs)
 
-    def trace(self, *inputs: Placeholder, **params: Param) -> tuple[Placeholder, ...]:
-        raise NotImplementedError(f"no trace implementation for '{self.name}'")
+    def interpret(self, *inputs: AbstractValue, **params: Param) -> tuple[AbstractValue, ...]:
+        raise NotImplementedError(f"no interpreter implementation for '{self.name}'")
 
     def bind(self, *inputs: Input, **params: Param) -> tuple[Input, ...]:
-        trace = trace_context().trace
+        interpreter = interpreter_context().interpreter
 
-        return trace.process(
+        return interpreter.process(
             Instruction(
                 self,
-                inputs if isinstance(trace, EvalTrace) else tuple(trace.to_level(input) for input in inputs),
+                inputs
+                if isinstance(interpreter, EvalInterpreter)
+                else tuple(interpreter.to_level(input) for input in inputs),
                 params,
             )
         )
